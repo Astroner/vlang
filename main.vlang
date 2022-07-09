@@ -1,0 +1,8 @@
+number num = 100;
+
+number sec = 10;
+
+log(num);
+log(num, sec);
+log(100);
+log(num, 20);
