@@ -32,7 +32,6 @@ static Token* createToken(TOKEN_TYPE type, void* value) {
 Token* tokenFromString(char* str) {
     Token *token;
     int length = strlen(str);
-    BOOL freeFlag = TRUE;
     if(length == 1) {
         char ch = str[0];
 
@@ -65,7 +64,6 @@ Token* tokenFromString(char* str) {
                 token = createToken(TOKEN_COMMA, 0);
                 break;
             default:
-                freeFlag = FALSE;
                 token = createToken(TOKEN_IDENTIFIER, str);
                 break;
         }
@@ -80,12 +78,7 @@ Token* tokenFromString(char* str) {
             token = createToken(TOKEN_NUMBER_LITERAL, entity);
         } else {
             token = createToken(TOKEN_IDENTIFIER, str);
-            freeFlag = FALSE;
         }
-    }
-
-    if(freeFlag) {
-        free(str);
     }
 
     return token;

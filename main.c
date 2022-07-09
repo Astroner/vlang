@@ -122,9 +122,8 @@ int main(int argc, char const **argv) {
     List *tokens = LinkedList.createList();
 
     char ch;
-
     int spanLength = 0;
-
+    char splitter[2];
     while((ch=fgetc(fp)) != EOF) {
         if(Utils.charArrayIncludes(splitters, sizeof(splitters), ch)) {
             if(spanLength > 0) {
@@ -138,7 +137,6 @@ int main(int argc, char const **argv) {
 
                 LinkedList.pushItem(tokens, TokenModule.tokenFromString(textChunk));
             }
-            char* splitter = malloc(sizeof(char) * 2);
             splitter[0] = ch;
             splitter[1] = '\0';
 
@@ -152,16 +150,16 @@ int main(int argc, char const **argv) {
 
     fclose(fp);
 
-/*     printf("Tokens: \n");
-    LinkedList.forEach(tokens, logToken);
-    printf("\n\n"); */
+    // printf("Tokens: \n");
+    // LinkedList.forEach(tokens, logToken);
+    // printf("\n\n");
 
     List* lexemes = Lexemes.getLexemes(tokens);
     LinkedList.clear(tokens);
 
-/*     printf("Lexemes: \n");
-    LinkedList.forEach(lexemes, logLexeme);
-    printf("\n\n"); */
+    // printf("Lexemes: \n");
+    // LinkedList.forEach(lexemes, logLexeme);
+    // printf("\n\n");
 
     List* ast = AST.createStatements(lexemes);
 
