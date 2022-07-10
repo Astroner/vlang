@@ -7,6 +7,7 @@
 #include "main.h"
 #include "lexemes/lexemes.h"
 #include "ast/ast.h"
+#include "runtime/runtime.h"
 
 char splitters[] = {
     CHAR_SPACE,
@@ -61,7 +62,8 @@ void logASTNode(ASTNode* node, int padding) {
         VariableDeclarationValue* declaration = node->value;
 
         logPadding(padding + 1);
-        printf("Identifier: '%s'\n", declaration->name->value);
+        printf("Identifier:\n");
+        logASTNode(declaration->name, padding + 2);
 
         switch (declaration->type) {
             case AST_NODE_TYPE_NUMBER:
@@ -163,8 +165,10 @@ int main(int argc, char const **argv) {
 
     List* ast = AST.createStatements(lexemes);
 
-    printf("AST: \n");
-    LinkedList.forEach(ast, ASTListLogger);
+    // printf("AST: \n");
+    // LinkedList.forEach(ast, ASTListLogger);
+
+    Runtime.run(ast);
 
     return 0;
 }
