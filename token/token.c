@@ -15,7 +15,11 @@ static char* TokenType[] = {
     "TOKEN_CLOSE_BRACKET",
     "TOKEN_NUMBER_KEYWORD",
     "TOKEN_NUMBER_LITERAL",
-    "TOKEN_COMMA"
+    "TOKEN_COMMA",
+    "TOKEN_STAR",
+    "TOKEN_DASH",
+    "TOKEN_SLASH",
+    "TOKEN_PLUS",
 };
 
 static Token* createToken(TOKEN_TYPE type, void* value) {
@@ -62,6 +66,18 @@ Token* tokenFromString(char* str) {
                 break;
             case CHAR_COMMA:
                 token = createToken(TOKEN_COMMA, 0);
+                break;
+            case CHAR_STAR:
+                token = createToken(TOKEN_STAR, 0);
+                break;
+            case CHAR_DASH:
+                token = createToken(TOKEN_DASH, 0);
+                break;
+            case CHAR_PLUS:
+                token = createToken(TOKEN_PLUS, 0);
+                break;
+            case CHAR_SLASH:
+                token = createToken(TOKEN_SLASH, 0);
                 break;
             default:
                 token = createToken(TOKEN_IDENTIFIER, str);

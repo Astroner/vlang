@@ -17,6 +17,10 @@ char splitters[] = {
     CHAR_OPEN_BRACKET,
     CHAR_CLOSE_BRACKET,
     CHAR_COMMA,
+    CHAR_DASH,
+    CHAR_PLUS,
+    CHAR_SLASH,
+    CHAR_STAR,
 };
 
 void logToken(void* item, int index) {
@@ -70,7 +74,8 @@ void logASTNode(ASTNode* node, int padding) {
                 logPadding(padding + 1);
                 printf("Type: number\n");
                 logPadding(padding + 1);
-                printf("Value: %d\n", *((int*)(declaration->value)));
+                printf("Value:\n");
+                logASTNode(declaration->value, padding + 2);
                 break;
             default:
                 break;
@@ -101,6 +106,25 @@ void logASTNode(ASTNode* node, int padding) {
     if(node->kind == AST_KIND_NUMBER_LITERAL) {
         logPadding(padding + 1);
         printf("Value: %d\n", *((int*)(node->value)));
+    }
+    if(node->kind == AST_KIND_BINOMIAL_EXPRESSION) {
+        BinomialExpressionValue* expression = node->value;
+        logPadding(padding + 1);
+        printf("Type: %s\n", AST.BinomialExpressionType[expression->type]);
+        logPadding(padding + 1);
+        printf("First:\n");
+        logASTNode(expression->first, padding + 2);
+        logPadding(padding + 1);
+        printf("Second:\n");
+        logASTNode(expression->second, padding + 2);
+    }
+    if(node->kind == AST_KIND_UNARY_EXPRESSION) {
+        UnaryExpressionValue* expression = node->value;
+        logPadding(padding + 1);
+        printf("Type: %s\n", AST.UnaryExpressionType[expression->type]);
+        logPadding(padding + 1);
+        printf("Member:\n");
+        logASTNode(expression->member, padding + 2);
     }
 }
 
@@ -165,10 +189,10 @@ int main(int argc, char const **argv) {
 
     List* ast = AST.createStatements(lexemes);
 
-    // printf("AST: \n");
-    // LinkedList.forEach(ast, ASTListLogger);
+    printf("AST: \n");
+    LinkedList.forEach(ast, ASTListLogger);
 
-    Runtime.run(ast);
+    // Runtime.run(ast);
 
     return 0;
 }

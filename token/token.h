@@ -13,8 +13,14 @@
 #define TOKEN_NUMBER_KEYWORD 7
 #define TOKEN_NUMBER_LITERAL 8
 #define TOKEN_COMMA 9
+#define TOKEN_STAR 10
+#define TOKEN_DASH 11
+#define TOKEN_SLASH 12
+#define TOKEN_PLUS 13
 
 #define NUMBER_KEYWORD "number"
+// returns stringified token type from dict
+#define t2s(token) TokenModule.TokenType[token->type]
 
 typedef struct {
     TOKEN_TYPE type;

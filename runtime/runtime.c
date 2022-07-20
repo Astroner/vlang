@@ -11,7 +11,18 @@ typedef struct {
     void* value;
 } Declaration;
 
-static void runVariableDeclaration(VariableDeclarationValue* variable, Table* scope) {
+static Declaration* getDeclarationFromScopes(char* name, Table* globalScope, Table* scope) {
+    Declaration* declaration = HashTable.get(scope, name);
+    if(declaration == NULL) declaration = HashTable.get(globalScope, name);
+    if(declaration == NULL) {
+        fprintf(stderr, "[ERROR] Undefined variable '%s'\n", name);
+        exit(1);
+    }
+
+    return declaration;
+}
+
+static void runVariableDeclaration(VariableDeclarationValue* variable, Table* globalScope, Table* scope) {
     Declaration* declaration = HashTable.get(scope, variable->name->value);
     if(declaration != NULL) {
         fprintf(stderr, "[ERROR] Variable '%s' already declared\n", variable->name->value);
@@ -19,7 +30,26 @@ static void runVariableDeclaration(VariableDeclarationValue* variable, Table* sc
     }
     declaration = malloc(sizeof(Declaration));
     declaration->type = variable->type;
-    declaration->value = variable->value;
+
+    Declaration* pointedValue;
+    switch(variable->value->kind) {
+        case AST_KIND_NUMBER_LITERAL: 
+            declaration->value = variable->value->value;
+            break;
+        case AST_KIND_IDENTIFIER: 
+            pointedValue = getDeclarationFromScopes(variable->value->value, globalScope, scope);
+            if(pointedValue->type == variable->type) {
+                declaration->value = pointedValue->value;
+            } else {
+                fprintf(stderr, "[ERROR] Cannot assign type '%s' to type '%s'\n", AST.NodeType[pointedValue->type], AST.NodeType[variable->type]);
+                exit(1);
+            }
+            break;
+        default:
+            fprintf(stderr, "[ERROR] Unexpected AST type '%s'\n", AST.NodeKind[variable->value->kind]);
+            exit(1);
+            break;
+    }
 
     HashTable.set(scope, variable->name->value, declaration);
 }
@@ -39,12 +69,7 @@ static void runFunctionCall(FunctionCallValue* call, Table* globalScope, Table* 
             printf("%d", *((int*)node->value));
         }
         if(node->kind == AST_KIND_IDENTIFIER) {
-            Declaration* declaration = HashTable.get(scope, node->value);
-            if(declaration == NULL) declaration = HashTable.get(globalScope, node->value);
-            if(declaration == NULL) {
-                fprintf(stderr, "[ERROR] Undefined variable '%s'\n", node->value);
-                exit(1);
-            }
+            Declaration* declaration = getDeclarationFromScopes(node->value, globalScope, scope);
             printDeclaration(declaration);
         }
         if(current->next) printf(" ");
@@ -57,7 +82,7 @@ static void runFunctionCall(FunctionCallValue* call, Table* globalScope, Table* 
 static void runNode(ASTNode* node, Table* globalScope, Table* scope) {
     switch (node->kind) {
         case AST_KIND_VARIABLE_DECLARATION:
-            runVariableDeclaration(node->value, scope);
+            runVariableDeclaration(node->value, globalScope, scope);
             break;
         case AST_KIND_FUNCTION_CALL:
             runFunctionCall(node->value, globalScope, scope);
