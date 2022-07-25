@@ -76,11 +76,11 @@ static ASTNode* createUnaryExpression(
 
 static ASTNode* parseTokenExpression(
     List* tokens,           // Token List
-    BOOL breakOnBracket,    // Used int case of bracket context
-    BOOL withLength,        // Should function store handled length into lengthPointer
-    int* lengthPointer,     // Pointer for length. Primary used for skip var
-    ASTNode* __first,       // Internal recursive arg for operation prior handling when we already have first member.
-    int limit               // Limit for reading; -1 means no limit
+    BOOL breakOnBracket,    // TRUE if u want to stop parsing on first closing bracket
+    BOOL withLength,        // Should function store length of parsed tokens into lengthPointer
+    int* lengthPointer,     // Pointer for length. Primary used for skip variable
+    ASTNode* __first,       // Internal recursion arg for operation prior handling when we already have first member.
+    int limit               // Limit for list reading; -1 means no limit
 ) {
     ASTNode* node;
 
