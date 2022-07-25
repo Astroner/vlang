@@ -42,7 +42,7 @@ static void set(Table* table, char* name, void* value) {
     ListNode* current = list;
     TableItem* item;
     while(1){
-        if(!current->value) {
+        if(current->value == NULL) {
             item = malloc(sizeof(TableItem));
             item->name = name;
             item->value = value;
