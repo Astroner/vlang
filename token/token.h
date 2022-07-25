@@ -17,6 +17,7 @@
 #define TOKEN_DASH 11
 #define TOKEN_SLASH 12
 #define TOKEN_PLUS 13
+#define TOKEN_CARET 14
 
 #define NUMBER_KEYWORD "number"
 // returns stringified token type from dict

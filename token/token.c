@@ -20,6 +20,7 @@ static char* TokenType[] = {
     "TOKEN_DASH",
     "TOKEN_SLASH",
     "TOKEN_PLUS",
+    "TOKEN_CARET",
 };
 
 static Token* createToken(TOKEN_TYPE type, void* value) {
@@ -78,6 +79,9 @@ Token* tokenFromString(char* str) {
                 break;
             case CHAR_SLASH:
                 token = createToken(TOKEN_SLASH, 0);
+                break;
+            case CHAR_CARET:
+                token = createToken(TOKEN_CARET, 0);
                 break;
             default:
                 token = createToken(TOKEN_IDENTIFIER, str);

@@ -21,6 +21,7 @@ char splitters[] = {
     CHAR_PLUS,
     CHAR_SLASH,
     CHAR_STAR,
+    CHAR_CARET,
 };
 
 void logToken(void* item, int index) {
@@ -86,7 +87,7 @@ void logASTNode(ASTNode* node, int padding) {
         logPadding(padding + 1);
         printf("Function: '%s'\n", declaration->name->value);
         logPadding(padding + 1);
-        printf("Arguments Length: %d\n", declaration->argLength);
+        printf("Arguments Length: %d\n", declaration->argumentsLength);
         logPadding(padding + 1);
         printf("Arguments:\n");
 
@@ -189,10 +190,10 @@ int main(int argc, char const **argv) {
 
     List* ast = AST.createStatements(lexemes);
 
-    printf("AST: \n");
-    LinkedList.forEach(ast, ASTListLogger);
+    // printf("AST: \n");
+    // LinkedList.forEach(ast, ASTListLogger);
 
-    // Runtime.run(ast);
+    Runtime.run(ast);
 
     return 0;
 }

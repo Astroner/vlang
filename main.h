@@ -18,5 +18,6 @@
 #define CHAR_NUMBER_9 57            // 9
 #define CHAR_SEMICOLON 59           // semicolon
 #define CHAR_EQUAL 61               // equal
+#define CHAR_CARET 94               // ^
 
 #endif // MAIN_H

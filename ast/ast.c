@@ -19,6 +19,7 @@ static Priority binomialOperationPriorities[] = {
     /* AST_BINOMIAL_EXPRESSION_TYPE_SUBTRACTION */      1,
     /* AST_BINOMIAL_EXPRESSION_TYPE_MULTIPLICATION */   2,
     /* AST_BINOMIAL_EXPRESSION_TYPE_DIVISION */         2,
+    /* AST_BINOMIAL_EXPRESSION_TYPE_POWER */            3,
 };
 
 static ASTNode* createIdentifier(char* name) {
@@ -99,7 +100,7 @@ static ASTNode* parseTokenExpression(
         length++;
         if(skip > 0) {
             skip--;
-            if(!(current = current->next)) break;
+            if(breakFlag || !(current = current->next) || (limit > 0 && length == limit)) break;
             continue;
         }
 
@@ -156,6 +157,7 @@ static ASTNode* parseTokenExpression(
             case TOKEN_DASH:
             case TOKEN_SLASH:
             case TOKEN_STAR:
+            case TOKEN_CARET:
                 if(
                     // If we dont have any subject
                     first == NULL || 
@@ -181,25 +183,34 @@ static ASTNode* parseTokenExpression(
                     if(token->type == TOKEN_DASH) operation = AST_BINOMIAL_EXPRESSION_TYPE_SUBTRACTION;
                     if(token->type == TOKEN_SLASH) operation = AST_BINOMIAL_EXPRESSION_TYPE_DIVISION;
                     if(token->type == TOKEN_STAR) operation = AST_BINOMIAL_EXPRESSION_TYPE_MULTIPLICATION;
+                    if(token->type == TOKEN_CARET) operation = AST_BINOMIAL_EXPRESSION_TYPE_POWER;
 
                     // If we dont have current bi operation we are applying it
                     if(binomialExpressionType == AST_BINOMIAL_EXPRESSION_TYPE_BLANK) {
                         binomialExpressionType = operation;
                     } else {
                         // In opposite case we already have both operands and operation, so we must process bi operations prior (* > +);
-                        if(operationPriority(operation) > operationPriority(binomialExpressionType)) {
-                            // If the incoming operation is prioritized, then we recursively parse next tokens, using current second operand as first.
+                        if(
+                            operationPriority(operation) > operationPriority(binomialExpressionType) ||
+                            operation == AST_BINOMIAL_EXPRESSION_TYPE_POWER && binomialExpressionType == AST_BINOMIAL_EXPRESSION_TYPE_POWER
+                        ) {
+                            // If the incoming operation is prioritized or its power operation cascade, then we recursively parse next tokens, using current second operand as first.
                             // 40 + 20 * 4; first = NULL; second = NULL; operation = NONE
                             // >40< + 20 * 4; first = 40; second = NULL; operation = NONE
                             // 40 >+< 20 * 4; first = 40; second = NULL; operation = SUM
                             // 40 + >20< * 4; first = 40; second = 20; operation = SUM
-                            // 40 + 20 >*< 4; first = 40; second = 20; operation = SUM; here we see prioritized incoming operation and run the recursion with preset first operand
+                            // 40 + 20 >*< 4; first = 40; second = 20; operation = SUM; here we got prioritized incoming operation and run the recursion with preset first operand
                             // >*< 4; first = 20; second = NULL; operation = MULT
                             // * >4<; first = 20; second = 4; operation = MULT
                             // then we return the result back to the main operation and skip all parsed tokens
                             // 40 + >20< * 4; first = 40; second = RecResult; operation = SUM
                             // 40 + 20 * 4><; first = 40; second = RecResult; operation = SUM
-                            second = parseTokenExpression(current, FALSE, TRUE, &skip, second, -1);
+                            second = parseTokenExpression(current, FALSE, TRUE, &skip, second, limit - length + 1);
+                            // and we should set new limit for 'subgroup' that at the end of the expression 
+                            // ex: log(10 + 30 * 20);
+                            // P.S why do this when power operation cascade:
+                            // 2 ^ 2 ^ 3 = 256;
+                            // Incoming power operator is more prioritized, we must at first 2^3 and then 2^8
                         } else {
                             // If not then we should just store current operation in "first", clear second and set current operation to the incoming one;
                             first = createBinomialExpression(binomialExpressionType, first, second);
@@ -321,31 +332,42 @@ static ASTNode* parseFunctionCallLexeme(List* tokens){
     
     assert(openToken && ((Token*)(openToken->value))->type == TOKEN_OPEN_BRACKET);
 
-    int argLength = 0;
+    int argumentsLength = 0;
     List* arguments = LinkedList.createList();
 
     ListNode* current = openToken->next;
     ListNode* argStart = current;
-    int argLimit = 0;
+    int argumentTokenLength = 0;
+    int bracketsDepth = 0;
     while(1) {
+        BOOL countable = TRUE;
         Token* token = current->value;
-        if(token->type == TOKEN_CLOSE_BRACKET) {
-            LinkedList.pushItem(arguments, parseTokenExpression(argStart, FALSE, FALSE, NULL, NULL, argLimit));
-            argLength++;
-            break;
-        }
 
-        if(token->type == TOKEN_COMMA) {
-            LinkedList.pushItem(arguments, parseTokenExpression(argStart, FALSE, FALSE, NULL, NULL, argLimit));
+        if(token->type == TOKEN_COMMA && bracketsDepth == 0) {
+            LinkedList.pushItem(arguments, parseTokenExpression(argStart, FALSE, FALSE, NULL, NULL, argumentTokenLength));
             if(!current->next) {
                 fprintf(stderr, "[ERROR][AST][6f1c62336fdb] Expected another argument after ',' token\n");
                 exit(1);
             }
             argStart = current->next;
-            argLimit = 0;
-            argLength++;
-        } else {
-            argLimit++;
+            argumentTokenLength = 0;
+            countable = FALSE;
+            argumentsLength++;
+        } else if(token->type == TOKEN_OPEN_BRACKET) {
+            bracketsDepth++;
+        } else if(token->type == TOKEN_CLOSE_BRACKET) {
+            if(bracketsDepth == 0) {
+                argumentsLength++;
+                LinkedList.pushItem(arguments, parseTokenExpression(argStart, FALSE, FALSE, NULL, NULL, argumentTokenLength));
+                countable = FALSE;
+                break;
+            } else {
+                bracketsDepth--;
+            }
+        } 
+        
+        if(countable) {
+            argumentTokenLength++;
         }
 
         if(!(current = current->next)) {
@@ -354,7 +376,7 @@ static ASTNode* parseFunctionCallLexeme(List* tokens){
         }
     }
 
-    value->argLength = argLength;
+    value->argumentsLength = argumentsLength;
     value->arguments = arguments;
 
     return node;
