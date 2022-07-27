@@ -8,6 +8,7 @@
 #define LEXEME_BLANK 0
 #define LEXEME_VARIABLE_DEFINITION 1
 #define LEXEME_FUNCTION_CALL 2
+#define LEXEME_FUNCTION_DEFINITION 3
 
 typedef struct {
     LEXEME_TYPE type;

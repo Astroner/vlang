@@ -19,5 +19,7 @@
 #define CHAR_SEMICOLON 59           // semicolon
 #define CHAR_EQUAL 61               // equal
 #define CHAR_CARET 94               // ^
+#define CHAR_OPEN_CURLY_BRACKET 123 // {
+#define CHAR_CLOSE_CURLY_BRACKET 125 // }
 
 #endif // MAIN_H

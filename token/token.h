@@ -5,21 +5,24 @@
 #define TOKEN_BLANK -1
 #define TOKEN_IDENTIFIER 0
 #define TOKEN_EQUAL 1
-#define TOKEN_SPACE 2
-#define TOKEN_SEMICOLON 3
-#define TOKEN_NL 4
-#define TOKEN_OPEN_BRACKET 5
-#define TOKEN_CLOSE_BRACKET 6
-#define TOKEN_NUMBER_KEYWORD 7
-#define TOKEN_NUMBER_LITERAL 8
-#define TOKEN_COMMA 9
-#define TOKEN_STAR 10
-#define TOKEN_DASH 11
-#define TOKEN_SLASH 12
-#define TOKEN_PLUS 13
-#define TOKEN_CARET 14
+#define TOKEN_SEMICOLON 2
+#define TOKEN_OPEN_BRACKET 3
+#define TOKEN_CLOSE_BRACKET 4
+#define TOKEN_NUMBER_KEYWORD 5
+#define TOKEN_NUMBER_LITERAL 6
+#define TOKEN_COMMA 7
+#define TOKEN_STAR 8
+#define TOKEN_DASH 9
+#define TOKEN_SLASH 10
+#define TOKEN_PLUS 11
+#define TOKEN_CARET 12
+#define TOKEN_OPEN_CURLY_BRACKET 13
+#define TOKEN_CLOSE_CURLY_BRACKET 14
+#define TOKEN_RETURN_KEYWORD 15
 
 #define NUMBER_KEYWORD "number"
+#define RETURN_KEYWORD "return"
+
 // returns stringified token type from dict
 #define t2s(token) TokenModule.TokenType[token->type]
 

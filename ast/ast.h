@@ -60,6 +60,7 @@ typedef struct {
 
 typedef struct {
     List* (*createStatements)(List* lexeme);
+    List* (*createASTFromTokens)(List* token);
     char** NodeKind;
     char** NodeType;
     char** BinomialExpressionType;

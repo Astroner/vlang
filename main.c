@@ -22,6 +22,8 @@ char splitters[] = {
     CHAR_SLASH,
     CHAR_STAR,
     CHAR_CARET,
+    CHAR_OPEN_CURLY_BRACKET,
+    CHAR_CLOSE_CURLY_BRACKET,
 };
 
 void logToken(void* item, int index) {
@@ -46,7 +48,9 @@ void logLexeme(void* item, int index) {
 
     while(1) {
         Token* token = current->value;
-        printf("    %s\n", TokenModule.TokenType[token->type]);
+
+        printf("    ");
+        logToken(token, 0);
 
         if(!current->next) break;
         current = current->next;
@@ -164,11 +168,12 @@ int main(int argc, char const **argv) {
 
                 LinkedList.pushItem(tokens, TokenModule.tokenFromString(textChunk));
             }
-            splitter[0] = ch;
-            splitter[1] = '\0';
+            if(ch != CHAR_NL & ch != CHAR_SPACE) {
+                splitter[0] = ch;
+                splitter[1] = '\0';
 
-            LinkedList.pushItem(tokens, TokenModule.tokenFromString(splitter));
-
+                LinkedList.pushItem(tokens, TokenModule.tokenFromString(splitter));
+            }
             spanLength = 0;
         } else {
            spanLength++;
@@ -181,19 +186,21 @@ int main(int argc, char const **argv) {
     // LinkedList.forEach(tokens, logToken);
     // printf("\n\n");
 
-    List* lexemes = Lexemes.getLexemes(tokens);
-    LinkedList.clear(tokens);
+    // List* lexemes = Lexemes.getLexemes(tokens);
+    // LinkedList.clear(tokens);
 
     // printf("Lexemes: \n");
     // LinkedList.forEach(lexemes, logLexeme);
     // printf("\n\n");
 
-    List* ast = AST.createStatements(lexemes);
+    List* ast = AST.createASTFromTokens(tokens);
 
-    // printf("AST: \n");
-    // LinkedList.forEach(ast, ASTListLogger);
+    // List* ast = AST.createStatements(lexemes);
 
-    Runtime.run(ast);
+    printf("AST: \n");
+    LinkedList.forEach(ast, ASTListLogger);
+
+    // Runtime.run(ast);
 
     return 0;
 }

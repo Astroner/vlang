@@ -253,7 +253,7 @@ static ASTNode* parseTokenExpression(
     return node;
 }
 
-static ASTNode* parseVariableDefinitionLexeme(List* tokens){
+static ASTNode* parseVariableDefinitionLexeme(List* tokens, int limit){
     ASTNode* node = malloc(sizeof(ASTNode));
     node->kind = AST_KIND_VARIABLE_DECLARATION;
 
@@ -309,12 +309,12 @@ static ASTNode* parseVariableDefinitionLexeme(List* tokens){
 
     assert(equalTokenNode->next);
 
-    value->value = parseTokenExpression(equalTokenNode->next, FALSE, FALSE, NULL, NULL, -1);
+    value->value = parseTokenExpression(equalTokenNode->next, FALSE, FALSE, NULL, NULL, limit - 3);
 
     return node;
 }
 
-static ASTNode* parseFunctionCallLexeme(List* tokens){
+static ASTNode* parseFunctionCallLexeme(List* tokens, int limit){
     ASTNode* node = malloc(sizeof(ASTNode));
     FunctionCallValue* value = malloc(sizeof(FunctionCallValue));
     
@@ -339,7 +339,12 @@ static ASTNode* parseFunctionCallLexeme(List* tokens){
     ListNode* argStart = current;
     int argumentTokenLength = 0;
     int bracketsDepth = 0;
+    int length = 0;
     while(1) {
+        if(limit > 0 && length < limit) {
+            break;
+        }
+        length++;
         BOOL countable = TRUE;
         Token* token = current->value;
 
@@ -391,10 +396,10 @@ static List* createStatements(List* lexemes) {
         Lexeme* lexeme = current->value;
         switch (lexeme->type) {
         case LEXEME_VARIABLE_DEFINITION:
-            LinkedList.pushItem(result, parseVariableDefinitionLexeme(lexeme->tokens));
+            LinkedList.pushItem(result, parseVariableDefinitionLexeme(lexeme->tokens, 0));
             break;
         case LEXEME_FUNCTION_CALL:
-            LinkedList.pushItem(result, parseFunctionCallLexeme(lexeme->tokens));
+            LinkedList.pushItem(result, parseFunctionCallLexeme(lexeme->tokens, -1));
             break;
         default:
             break;
@@ -406,8 +411,79 @@ static List* createStatements(List* lexemes) {
     return result;
 }
 
+#define GUESS_TYPE unsigned int
+#define GUESS_TYPE_BLANK 0
+#define GUESS_TYPE_VARIABLE_DEFINITION 1
+#define GUESS_TYPE_FUNCTION_DEFINITION 2
+#define GUESS_TYPE_FUNCTION_CALL 4
+
+static List* createASTFromTokens(List* tokens) {
+    List* nodes = LinkedList.createList();
+
+    GUESS_TYPE guess = GUESS_TYPE_BLANK;
+
+    BOOL readTillSemicolon = FALSE;
+    ListNode* current = tokens;
+    ListNode* cursor = current;
+    int currentNodeTokenLength = 0;
+    while(1) {
+        Token* token = current->value;
+        currentNodeTokenLength++;
+
+        if(readTillSemicolon == FALSE) {
+            switch(token->type) {
+                case TOKEN_NUMBER_KEYWORD: 
+                    if(guess == GUESS_TYPE_BLANK) {
+                        guess = GUESS_TYPE_VARIABLE_DEFINITION | GUESS_TYPE_FUNCTION_DEFINITION;
+                    }
+                    break;
+                case TOKEN_IDENTIFIER:
+                    if(
+                        (guess & 
+                        (GUESS_TYPE_VARIABLE_DEFINITION | GUESS_TYPE_FUNCTION_DEFINITION)) != (GUESS_TYPE_VARIABLE_DEFINITION | GUESS_TYPE_FUNCTION_DEFINITION)
+                    ) {
+                        guess = GUESS_TYPE_FUNCTION_CALL;
+                    }
+                    break;
+                case TOKEN_EQUAL:
+                    if(
+                        (guess & GUESS_TYPE_VARIABLE_DEFINITION) == GUESS_TYPE_VARIABLE_DEFINITION
+                    ) {
+                        guess = GUESS_TYPE_VARIABLE_DEFINITION;
+                        readTillSemicolon = TRUE;
+                    }
+                case TOKEN_OPEN_BRACKET:
+                    if(
+                        (guess & GUESS_TYPE_FUNCTION_CALL) == GUESS_TYPE_FUNCTION_CALL
+                    ) {
+                        guess = GUESS_TYPE_FUNCTION_CALL;
+                        readTillSemicolon = TRUE;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        } else if(token->type == TOKEN_SEMICOLON) {
+            if(guess == GUESS_TYPE_VARIABLE_DEFINITION) {
+                LinkedList.pushItem(nodes, parseVariableDefinitionLexeme(cursor, currentNodeTokenLength - 1));
+            } else if(guess == GUESS_TYPE_FUNCTION_CALL) {
+                LinkedList.pushItem(nodes, parseFunctionCallLexeme(cursor, currentNodeTokenLength - 1));
+            }
+            guess = GUESS_TYPE_BLANK;
+            cursor = current->next;
+            currentNodeTokenLength = 0;
+            readTillSemicolon = FALSE;
+        }
+
+        if(!(current = current->next)) break;
+    }
+
+    return nodes;
+}
+
 ASTModuleType AST = { 
-    createStatements, 
+    createStatements,
+    createASTFromTokens,
     NodeKind, 
     NodeType, 
     BinomialExpressionType, 
