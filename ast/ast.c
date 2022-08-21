@@ -6,6 +6,7 @@
 
 #include "../token/token.h"
 #include "../main.h"
+#include "creators/creators.h"
 
 #include "dicts.c"
 
@@ -21,58 +22,6 @@ static Priority binomialOperationPriorities[] = {
     /* AST_BINOMIAL_EXPRESSION_TYPE_DIVISION */         2,
     /* AST_BINOMIAL_EXPRESSION_TYPE_POWER */            3,
 };
-
-static ASTNode* createIdentifier(char* name) {
-    ASTNode* identifier = malloc(sizeof(ASTNode));
-
-    identifier->kind = AST_KIND_IDENTIFIER;
-    identifier->value = name;
-
-    return identifier;
-}
-
-static ASTNode* createNumberLiteral(int* value) {
-    ASTNode* identifier = malloc(sizeof(ASTNode));
-
-    identifier->kind = AST_KIND_NUMBER_LITERAL;
-    identifier->value = value;
-
-    return identifier;
-}
-
-static ASTNode* createBinomialExpression(
-    AST_BINOMIAL_EXPRESSION_TYPE type,
-    ASTNode* first,
-    ASTNode* second
-) {
-    ASTNode* node = malloc(sizeof(ASTNode));
-    node->kind = AST_KIND_BINOMIAL_EXPRESSION;
-
-    BinomialExpressionValue* value = malloc(sizeof(BinomialExpressionValue));
-    value->type = type;
-    value->first = first;
-    value->second = second;
-
-    node->value = value;
-
-    return node;
-}
-
-static ASTNode* createUnaryExpression(
-    AST_UNARY_EXPRESSION_TYPE type,
-    ASTNode* member
-) {
-    ASTNode* node = malloc(sizeof(ASTNode));
-    node->kind = AST_KIND_UNARY_EXPRESSION;
-
-    UnaryExpressionValue* value = malloc(sizeof(UnaryExpressionValue));
-    value->type = type;
-    value->member = member;
-
-    node->value = value;
-
-    return node;
-}
 
 static ASTNode* parseTokenExpression(
     List* tokens,           // Token List
@@ -110,12 +59,12 @@ static ASTNode* parseTokenExpression(
             case TOKEN_IDENTIFIER:
             case TOKEN_NUMBER_LITERAL: {
                 ASTNode* subject;
-                if(token->type == TOKEN_IDENTIFIER) subject = createIdentifier(token->value);
-                if(token->type == TOKEN_NUMBER_LITERAL) subject = createNumberLiteral(token->value);
+                if(token->type == TOKEN_IDENTIFIER) subject = Creators.createIdentifier(token->value);
+                if(token->type == TOKEN_NUMBER_LITERAL) subject = Creators.createNumberLiteral(token->value);
                 
                 // If we have unary operator then applying it
                 if(unaryExpressionType != AST_UNARY_EXPRESSION_TYPE_BLANK) {
-                    subject = createUnaryExpression(unaryExpressionType, subject);
+                    subject = Creators.createUnaryExpression(unaryExpressionType, subject);
                     unaryExpressionType = AST_UNARY_EXPRESSION_TYPE_BLANK;
                 }
 
@@ -213,7 +162,7 @@ static ASTNode* parseTokenExpression(
                             // Incoming power operator is more prioritized, we must at first 2^3 and then 2^8
                         } else {
                             // If not then we should just store current operation in "first", clear second and set current operation to the incoming one;
-                            first = createBinomialExpression(binomialExpressionType, first, second);
+                            first = Creators.createBinomialExpression(binomialExpressionType, first, second);
                             second = NULL;
                             binomialExpressionType = operation;
                         }
@@ -245,9 +194,9 @@ static ASTNode* parseTokenExpression(
             fprintf(stderr, "[ERROR][AST][1a1eaa382a99] No second operand\n");
             exit(1);
         }
-        node = createBinomialExpression(binomialExpressionType, first, second);
+        node = Creators.createBinomialExpression(binomialExpressionType, first, second);
     } else {
-        node = createUnaryExpression(unaryExpressionType, first);
+        node = Creators.createUnaryExpression(unaryExpressionType, first);
     }
 
     return node;
@@ -314,7 +263,7 @@ static ASTNode* parseVariableDefinitionLexeme(List* tokens, int limit){
     return node;
 }
 
-static ASTNode* parseFunctionCallLexeme(List* tokens, int limit){
+static ASTNode* parseFunctionCallLexeme(List* tokens){
     ASTNode* node = malloc(sizeof(ASTNode));
     FunctionCallValue* value = malloc(sizeof(FunctionCallValue));
     
@@ -341,9 +290,6 @@ static ASTNode* parseFunctionCallLexeme(List* tokens, int limit){
     int bracketsDepth = 0;
     int length = 0;
     while(1) {
-        if(limit > 0 && length < limit) {
-            break;
-        }
         length++;
         BOOL countable = TRUE;
         Token* token = current->value;
@@ -399,7 +345,7 @@ static List* createStatements(List* lexemes) {
             LinkedList.pushItem(result, parseVariableDefinitionLexeme(lexeme->tokens, 0));
             break;
         case LEXEME_FUNCTION_CALL:
-            LinkedList.pushItem(result, parseFunctionCallLexeme(lexeme->tokens, -1));
+            LinkedList.pushItem(result, parseFunctionCallLexeme(lexeme->tokens));
             break;
         default:
             break;
@@ -467,7 +413,7 @@ static List* createASTFromTokens(List* tokens) {
             if(guess == GUESS_TYPE_VARIABLE_DEFINITION) {
                 LinkedList.pushItem(nodes, parseVariableDefinitionLexeme(cursor, currentNodeTokenLength - 1));
             } else if(guess == GUESS_TYPE_FUNCTION_CALL) {
-                LinkedList.pushItem(nodes, parseFunctionCallLexeme(cursor, currentNodeTokenLength - 1));
+                LinkedList.pushItem(nodes, parseFunctionCallLexeme(cursor));
             }
             guess = GUESS_TYPE_BLANK;
             cursor = current->next;

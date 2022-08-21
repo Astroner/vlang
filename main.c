@@ -200,7 +200,7 @@ int main(int argc, char const **argv) {
     printf("AST: \n");
     LinkedList.forEach(ast, ASTListLogger);
 
-    // Runtime.run(ast);
+    Runtime.run(ast);
 
     return 0;
 }
