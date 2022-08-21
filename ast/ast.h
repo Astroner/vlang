@@ -1,4 +1,3 @@
-#include "../lexemes/lexemes.h"
 #include "../linkedList/linkedList.h"
 
 #if !defined(AST_H)
@@ -59,7 +58,6 @@ typedef struct {
 } UnaryExpressionValue;
 
 typedef struct {
-    List* (*createStatements)(List* lexeme);
     List* (*createASTFromTokens)(List* token);
     char** NodeKind;
     char** NodeType;

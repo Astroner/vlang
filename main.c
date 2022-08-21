@@ -5,7 +5,6 @@
 #include "utils/utils.h"
 #include "token/token.h"
 #include "main.h"
-#include "lexemes/lexemes.h"
 #include "ast/ast.h"
 #include "runtime/runtime.h"
 
@@ -38,23 +37,6 @@ void logToken(void* item, int index) {
         }
     }
     printf("\n");
-}
-
-void logLexeme(void* item, int index) {
-    Lexeme* lexeme = item;
-    printf("%s\n", Lexemes.LexemesTypes[lexeme->type]);
-
-    ListNode* current = lexeme->tokens;
-
-    while(1) {
-        Token* token = current->value;
-
-        printf("    ");
-        logToken(token, 0);
-
-        if(!current->next) break;
-        current = current->next;
-    }
 }
 
 void logPadding(int padding) {
@@ -186,16 +168,7 @@ int main(int argc, char const **argv) {
     // LinkedList.forEach(tokens, logToken);
     // printf("\n\n");
 
-    // List* lexemes = Lexemes.getLexemes(tokens);
-    // LinkedList.clear(tokens);
-
-    // printf("Lexemes: \n");
-    // LinkedList.forEach(lexemes, logLexeme);
-    // printf("\n\n");
-
     List* ast = AST.createASTFromTokens(tokens);
-
-    // List* ast = AST.createStatements(lexemes);
 
     printf("AST: \n");
     LinkedList.forEach(ast, ASTListLogger);

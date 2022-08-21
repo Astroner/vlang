@@ -54,9 +54,40 @@ static ASTNode* createUnaryExpression(
     return node;
 }
 
+static ASTNode* createVariableDeclaration(ASTNode* identifier, AST_NODE_TYPE type, ASTNode* value) {
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->kind = AST_KIND_VARIABLE_DECLARATION;
+    
+    VariableDeclarationValue* declaration = malloc(sizeof(VariableDeclarationValue));
+    
+    declaration->name = identifier;
+    declaration->type = type;
+    declaration->value = value;
+
+    node->value = declaration;
+
+    return node;
+}
+
+static ASTNode* createFunctionCall(ASTNode* name, int argumentsLength, List* arguments) {
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->kind = AST_KIND_FUNCTION_CALL;
+
+    FunctionCallValue* declaration = malloc(sizeof(FunctionCallValue));
+    declaration->name = name;
+    declaration->argumentsLength = argumentsLength;
+    declaration->arguments = arguments;
+
+    node->value = declaration;
+
+    return node;
+}
+
 CreatorsType Creators = {
+    createVariableDeclaration,
     createIdentifier,
     createNumberLiteral,
     createBinomialExpression,
-    createUnaryExpression
+    createUnaryExpression,
+    createFunctionCall
 };
