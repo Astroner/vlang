@@ -2,3 +2,6 @@
 start
 *.o
 *.vlang
+
+vlang.*
+vlang
