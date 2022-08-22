@@ -12,6 +12,8 @@
 #define AST_KIND_NUMBER_LITERAL 4
 #define AST_KIND_BINOMIAL_EXPRESSION 5
 #define AST_KIND_UNARY_EXPRESSION 6
+#define AST_KIND_FUNCTION_DEFINITION 7
+#define AST_KIND_FUNCTION_ARGUMENT 8
 
 #define AST_NODE_TYPE int
 #define AST_NODE_TYPE_BLANK 0
@@ -56,6 +58,19 @@ typedef struct {
     AST_UNARY_EXPRESSION_TYPE type;
     ASTNode* member;
 } UnaryExpressionValue;
+
+typedef struct {
+    AST_NODE_TYPE type;
+    ASTNode* name;
+} FunctionArgumentValue;
+
+typedef struct {
+    ASTNode* name;
+    AST_NODE_TYPE returnType;
+    unsigned int argumentsLength;
+    List* arguments;
+    List* statements;
+} FunctionDefinitionValue;
 
 typedef struct {
     List* (*createASTFromTokens)(List* token);

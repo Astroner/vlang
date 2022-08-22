@@ -120,12 +120,165 @@ static ASTNode* parseFunctionCall(List* tokens, ListNode* lastItem) {
         }
     }
 
-    *lastItem = *current;
+    ListNode* semicolonNode = current->next;
+
+    if(semicolonNode == NULL || ((Token*)semicolonNode->value)->type != TOKEN_SEMICOLON) {
+        fprintf(stderr, "[ERROR][AST][bcbf3f4f793e] Unexpected semicolon at the end of the function call\n");
+        exit(1);
+    }
+
+    *lastItem = *semicolonNode;
 
     return Creators.createFunctionCall(name, argumentsLength, arguments);
 }
 
+static ASTNode* parseFunctionArgument(List* tokens, unsigned int argumentLength) {
+    ASTNode* name;
+    AST_NODE_TYPE type = AST_NODE_TYPE_BLANK;
+
+    Token* typeToken = tokens->value;
+
+    if(typeToken->type == TOKEN_NUMBER_KEYWORD) {
+        type = AST_NODE_TYPE_NUMBER;
+    } else {
+        fprintf(stderr, "[ERROR][AST][2847cafd97b1] Unexpected token as type '%s'\n", t2s(typeToken));
+        exit(1);
+    }
+
+    ListNode* nameNode = tokens->next;
+    if(nameNode == NULL) {
+        fprintf(stderr, "[ERROR][AST][f5096b36fff0] Expected argument function name\n");
+        exit(1);
+    }
+
+    Token* nameToken = nameNode->value;
+    if(nameToken->type == TOKEN_IDENTIFIER) {
+        name = Creators.createIdentifier(nameToken->value);
+    } else {
+        fprintf(stderr, "[ERROR][AST][2d7dc9c3f1c9] Unexpected token as function argument name '%s'\n", t2s(nameToken));
+        exit(1);
+    }
+
+    return Creators.createFunctionArgument(name, type);
+}
+
+static ASTNode* parseFunctionDefinition(List* tokens, ListNode* lastItem) {
+    ASTNode* name;
+    unsigned int argumentsLength = 0;
+    List* arguments = LinkedList.createList();
+    AST_NODE_TYPE returnType = AST_NODE_TYPE_BLANK;
+    List* statements = LinkedList.createList();
+
+    Token* typeToken = tokens->value;
+
+    if(typeToken->type == TOKEN_NUMBER_KEYWORD) {
+        returnType = AST_NODE_TYPE_NUMBER;
+    } else {
+        fprintf(stderr, "[ERROR][AST][858cc4f36b7a] Unexpected token as return type '%s'\n", t2s(typeToken));
+        exit(1);
+    }
+
+    ListNode* nameNode = tokens->next;
+    if(nameNode == NULL) {
+        fprintf(stderr, "[ERROR][AST][313a20c4b58b] Expected function name\n");
+        exit(1);
+    }
+    Token* nameToken = nameNode->value;
+    if(nameToken->type == TOKEN_IDENTIFIER) {
+        name = Creators.createIdentifier(nameToken->value);
+    } else {
+        fprintf(stderr, "[ERROR][AST][9405dd6da2be] Unexpected token as function name '%s'\n", t2s(nameToken));
+        exit(1);
+    }
+
+    if(nameNode->next == NULL || ((Token*)nameNode->next->value)->type != TOKEN_OPEN_BRACKET) {
+        fprintf(stderr, "[ERROR][AST][4958a493df6d] Expected open bracket but got '%s'\n", t2s(((Token*)nameNode->next->value)));
+        exit(1);
+    }
+
+    ListNode* current = nameNode->next->next;
+    if(current == NULL) {
+        fprintf(stderr, "[ERROR][AST][a47b9f703c02] Expected arguments\n");
+        exit(1);
+    }
+    unsigned int currentArgumentLength = 0;
+    ListNode* currentArgumentStart = current;
+    Token* token;
+    while(1) {
+        token = current->value;
+        if(token->type == TOKEN_COMMA) {
+            LinkedList.pushItem(
+                arguments,
+                parseFunctionArgument(
+                    currentArgumentStart,
+                    currentArgumentLength
+                )
+            );
+            currentArgumentLength = 0;
+            currentArgumentStart = current->next;
+            argumentsLength++;
+        } else if(token->type == TOKEN_CLOSE_BRACKET) {
+            LinkedList.pushItem(
+                arguments,
+                parseFunctionArgument(
+                    currentArgumentStart,
+                    currentArgumentLength
+                )
+            );
+            argumentsLength++;
+            break;
+        } else {
+            currentArgumentLength++;
+        }        
+
+        if(!(current = current->next)) {
+            fprintf(stderr, "[ERROR][AST][d81a0630e127] Expected end of arguments ')'\n");
+            exit(1);
+        }
+    }
+
+    ListNode* bodyOpenNode = current->next;
+    if(bodyOpenNode == NULL || ((Token*)bodyOpenNode->value)->type != TOKEN_OPEN_CURLY_BRACKET) {
+        fprintf(stderr, "[ERROR][AST][770a2b72aa1e] Expected function body '{'\n");
+        exit(1);
+    }
+
+    current = bodyOpenNode->next;
+    if(current == NULL) {
+        fprintf(stderr, "[ERROR][AST][fdc18f2884b8] Expected function body after '{'\n");
+        exit(1);
+    }
+    unsigned int bodyLength = 0;
+    while(1) {
+        token = current->value;
+        if(token->type == TOKEN_CLOSE_CURLY_BRACKET) {
+            break;
+        } else {
+            bodyLength++;
+        }
+        if(!(current = current->next)) {
+            fprintf(stderr, "[ERROR][AST][a6c5b4093efc] Expected function body end with '}'\n");
+            exit(1);
+        }
+    }
+    printf("BODY LENGTH: %d\n", bodyLength);
+    *lastItem = *current;
+
+    return Creators.createFunctionDefinition(
+        name, 
+        returnType, 
+        argumentsLength,
+        arguments,
+        statements
+    );
+}
+
+static List* parseStatements(List* tokens, unsigned int length) {
+
+}
+
 ParsersType Parsers = {
     parseVariableDefinition,
-    parseFunctionCall
+    parseFunctionCall,
+    parseFunctionDefinition,
 };

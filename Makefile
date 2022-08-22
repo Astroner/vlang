@@ -1,7 +1,7 @@
-SOURCES = main.c linkedList/linkedList.c utils/utils.c token/token.c ast/ast.c ast/creators/creators.c ast/parsers/parsers.c ast/parsers/parseTokenExpression.c HashTable/HashTable.c runtime/runtime.c
+SOURCES = main.c linkedList/linkedList.c utils/utils.c token/token.c ast/ast.c ast/creators/creators.c ast/parsers/parsers.c ast/parsers/parseTokenExpression.c ast/parsers/parseStatements.c HashTable/HashTable.c runtime/runtime.c
 OBJECTS = $(SOURCES:.c=.o)
 
-EXECUTABLE = ./vlang.exe
+EXECUTABLE = ./vlang
 
 build: $(OBJECTS)
 	gcc -o $(EXECUTABLE) $^

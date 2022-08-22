@@ -83,11 +83,43 @@ static ASTNode* createFunctionCall(ASTNode* name, int argumentsLength, List* arg
     return node;
 }
 
+static ASTNode* createFunctionDefinition(ASTNode* name, AST_NODE_TYPE returnType, unsigned int argumentsLength, List* arguments, List* statements) {
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->kind = AST_KIND_FUNCTION_DEFINITION;
+
+    FunctionDefinitionValue* declaration = malloc(sizeof(FunctionDefinitionValue));
+    declaration->name = name;
+    declaration->returnType = returnType;
+    declaration->statements = statements;
+    declaration->argumentsLength = argumentsLength;
+    declaration->arguments = arguments;
+
+    node->value = declaration;
+
+    return node;
+}
+
+static ASTNode* createFunctionArgument(ASTNode* name, AST_NODE_TYPE type) {
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->kind = AST_KIND_FUNCTION_ARGUMENT;
+
+    FunctionArgumentValue* declaration = malloc(sizeof(FunctionArgumentValue));
+
+    declaration->name = name;
+    declaration->type = type;
+
+    node->value = declaration;
+
+    return node;
+}
+
 CreatorsType Creators = {
     createVariableDeclaration,
     createIdentifier,
     createNumberLiteral,
     createBinomialExpression,
     createUnaryExpression,
-    createFunctionCall
+    createFunctionCall,
+    createFunctionDefinition,
+    createFunctionArgument,
 };

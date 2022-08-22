@@ -6,6 +6,8 @@ static char* NodeKind[] = {
     "AST_KIND_NUMBER_LITERAL",
     "AST_KIND_BINOMIAL_EXPRESSION",
     "AST_KIND_UNARY_EXPRESSION",
+    "AST_KIND_FUNCTION_DEFINITION",
+    "AST_KIND_FUNCTION_ARGUMENT",
 };
 
 static char* NodeType[] = {

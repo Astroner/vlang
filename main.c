@@ -113,6 +113,29 @@ void logASTNode(ASTNode* node, int padding) {
         printf("Member:\n");
         logASTNode(expression->member, padding + 2);
     }
+    if(node->kind == AST_KIND_FUNCTION_DEFINITION) {
+        FunctionDefinitionValue* declaration = node->value;
+        logPadding(padding + 1);
+        printf("Return Type: %s\n", AST.NodeType[declaration->returnType]);
+        logPadding(padding + 1);
+        printf("Arguments Length: %d\n", declaration->argumentsLength);
+        logPadding(padding + 1);
+        printf("Arguments:\n");
+        ListNode* current = declaration->arguments;
+        while(1) {
+            ASTNode* node = current->value;
+            logASTNode(node, padding + 2);
+            if(!(current = current->next)) break;
+        }
+    }
+    if(node->kind == AST_KIND_FUNCTION_ARGUMENT) {
+        FunctionArgumentValue* declaration = node->value;
+        logPadding(padding + 1);
+        printf("Type: %s\n", AST.NodeType[declaration->type]);
+        logPadding(padding + 1);
+        printf("Name:\n");
+        logASTNode(declaration->name, padding + 2);
+    }
 }
 
 void ASTListLogger(void* item, int index) {

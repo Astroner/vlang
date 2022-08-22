@@ -7,6 +7,7 @@
 typedef struct ParsersType {
     ASTNode* (*parseVariableDefinition)(List* tokens, ListNode* lastNode);
     ASTNode* (*parseFunctionCall)(List* tokens, ListNode* lastItem);
+    ASTNode* (*parseFunctionDefinition)(List* tokens, ListNode* lastItem);
 } ParsersType;
 
 ParsersType Parsers;
