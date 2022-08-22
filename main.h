@@ -1,7 +1,7 @@
 #if !defined(MAIN_H)
 #define MAIN_H
 
-#define BOOL int
+typedef int BOOL;
 #define TRUE 1
 #define FALSE 0
 
