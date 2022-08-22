@@ -11,10 +11,10 @@ typedef struct {
 } ParserResult;
 
 typedef struct {
-    void (*parseVariableDefinition)(List* tokens, ParserResult* result);
-    void (*parseFunctionCall)(List* tokens, ParserResult* result);
-    void (*parseFunctionDefinition)(List* tokens, ParserResult* result);
-    void (*parseReturnStatement)(List* tokens, ParserResult* result);
+    void (*parseVariableDefinition)(List* tokens, int contentLength, ParserResult* result);
+    void (*parseFunctionCall)(List* tokens, int contentLength, ParserResult* result);
+    void (*parseFunctionDefinition)(List* tokens, int contentLength, ParserResult* result);
+    void (*parseReturnStatement)(List* tokens, int contentLength, ParserResult* result);
 } ParsersType;
 
 ParsersType Parsers;

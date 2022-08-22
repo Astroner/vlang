@@ -11,7 +11,7 @@
 #include "parseTokenExpression.h"
 #include "parseStatements.h"
 
-static void parseVariableDefinition(List* tokens, ParserResult* result) {
+static void parseVariableDefinition(List* tokens, int contentLength, ParserResult* result) {
     ASTNode* name;
     AST_NODE_TYPE variableType = AST_NODE_TYPE_BLANK;
     ASTNode* value;
@@ -55,18 +55,18 @@ static void parseVariableDefinition(List* tokens, ParserResult* result) {
             result->lastNode = current;
             break;
         }
-        if(!(current = current->next)) {
+        expressionLength++;
+        if(!(current = current->next) || (contentLength > 0 && expressionLength == contentLength)) {
             fprintf(stderr, "[ERROR][AST][28af67d048f6] Expected semicolon at the end of the expression\n");
             exit(1);
         }
-        expressionLength++;
     }
 
     result->node = Creators.createVariableDeclaration(name, variableType, value);
     result->length = expressionLength + 4;
 }
 
-static void parseFunctionCall(List* tokens, ParserResult* result) {
+static void parseFunctionCall(List* tokens, int contentLength, ParserResult* result) {
     ASTNode* name;
     int argumentsLength = 0;
     List* arguments = LinkedList.createList();
@@ -116,7 +116,7 @@ static void parseFunctionCall(List* tokens, ParserResult* result) {
             argumentTokenLength++;
         }
 
-        if(!(current = current->next)) {
+        if(!(current = current->next) || (contentLength > 0 && length == contentLength)) {
             fprintf(stderr, "[ERROR][AST][1541db82e715] Unexpected end of arguments\n");
             exit(1);
         }
@@ -125,7 +125,7 @@ static void parseFunctionCall(List* tokens, ParserResult* result) {
     ListNode* semicolonNode = current->next;
 
     if(semicolonNode == NULL || ((Token*)semicolonNode->value)->type != TOKEN_SEMICOLON) {
-        fprintf(stderr, "[ERROR][AST][bcbf3f4f793e] Unexpected semicolon at the end of the function call\n");
+        fprintf(stderr, "[ERROR][AST][bcbf3f4f793e] Expected semicolon at the end of the function call\n");
         exit(1);
     }
 
@@ -164,7 +164,7 @@ static ASTNode* parseFunctionArgument(List* tokens, unsigned int argumentLength)
     return Creators.createFunctionArgument(name, type);
 }
 
-static void parseFunctionDefinition(List* tokens, ParserResult* result) {
+static void parseFunctionDefinition(List* tokens, int contentLength, ParserResult* result) {
     ASTNode* name;
     List* arguments = LinkedList.createList();
     AST_NODE_TYPE returnType = AST_NODE_TYPE_BLANK; 
@@ -265,7 +265,7 @@ static void parseFunctionDefinition(List* tokens, ParserResult* result) {
             exit(1);
         }
     }
-    List* statements = parseStatements(bodyOpenNode->next, bodyLength);
+    List* statements = parseStatements(bodyOpenNode->next, bodyLength, TRUE);
 
 
     result->lastNode = current;
@@ -279,7 +279,7 @@ static void parseFunctionDefinition(List* tokens, ParserResult* result) {
     );
 }
 
-static void parseReturnStatement(List* tokens, ParserResult* result) {
+static void parseReturnStatement(List* tokens, int contentLength, ParserResult* result) {
     ReturnStatementValue* value;
 
     ListNode* current = tokens->next;
@@ -297,7 +297,7 @@ static void parseReturnStatement(List* tokens, ParserResult* result) {
         }
 
         expressionLength++;
-        if(!(current = current->next)) {
+        if(!(current = current->next) || (contentLength > 0 && expressionLength == contentLength)) {
             fprintf(stderr, "[ERROR][AST][7200110bae25] Expected ';' at the end of the return statement\n");
             exit(1);
         }

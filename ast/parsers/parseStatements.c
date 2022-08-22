@@ -21,7 +21,7 @@
  * @param length content length (0 means no limit)
  * @return List* 
  */
-List* parseStatements(List* tokens, unsigned int contentLength) {
+List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInsideFunction) {
     List* nodes = LinkedList.createList();
 
     GUESS_TYPE guess = GUESS_TYPE_BLANK;
@@ -48,6 +48,7 @@ List* parseStatements(List* tokens, unsigned int contentLength) {
                 if(guess == GUESS_TYPE_BLANK) {
                     Parsers.parseFunctionCall(
                         nodeStart,
+                        contentLength - length,
                         &parserResult
                     );
                     LinkedList.pushItem(
@@ -67,6 +68,7 @@ List* parseStatements(List* tokens, unsigned int contentLength) {
                 if(guessIncludes(guess, GUESS_TYPE_VARIABLE_DEFINITION)) {
                     Parsers.parseVariableDefinition(
                         nodeStart,
+                        contentLength - length - 2,
                         &parserResult
                     );
                     LinkedList.pushItem(
@@ -87,6 +89,7 @@ List* parseStatements(List* tokens, unsigned int contentLength) {
                 if(guessIncludes(guess, GUESS_TYPE_FUNCTION_DEFINITION)) {
                     Parsers.parseFunctionDefinition(
                         nodeStart,
+                        contentLength - length - 2,
                         &parserResult
                     );
                     LinkedList.pushItem(
@@ -104,8 +107,8 @@ List* parseStatements(List* tokens, unsigned int contentLength) {
                 break;
             }
             case TOKEN_RETURN_KEYWORD: {
-                if(guess == GUESS_TYPE_BLANK && contentLength != 0) {
-                    Parsers.parseReturnStatement(nodeStart, &parserResult);
+                if(guess == GUESS_TYPE_BLANK && isInsideFunction) {
+                    Parsers.parseReturnStatement(nodeStart, contentLength - length, &parserResult);
                     LinkedList.pushItem(nodes, parserResult.node);
                     current = parserResult.lastNode;
                     nodeStart = current->next;

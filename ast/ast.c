@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../main.h"
+
 #include "parsers/parseStatements.h"
 
 #include "dicts.c"
@@ -13,7 +15,7 @@
  * @return List<ASTNodes>* 
  */
 static List* createASTFromTokens(List* tokens) {
-    return parseStatements(tokens, 0);
+    return parseStatements(tokens, 0, FALSE);
 }
 
 ASTModuleType AST = {
