@@ -17,7 +17,7 @@ build: $(OBJECTS)
 	gcc -o $(EXECUTABLE) $^
 
 start: build
-	$(EXECUTABLE) main.vlang
+	$(EXECUTABLE) main.vlang $(START_FLAGS)
 
 .c.o: 
 	gcc -c -o $@ $<

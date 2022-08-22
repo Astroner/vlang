@@ -34,7 +34,6 @@ List* parseStatements(List* tokens, unsigned int contentLength) {
     ParserResult parserResult;
     while(1) {
         Token* token = current->value;
-        printf("TOKEN: %s, %d/%d\n", t2s(token), length, contentLength);
         switch(token->type) {
             case TOKEN_NUMBER_KEYWORD: {
                 if(guess == GUESS_TYPE_BLANK) {

@@ -158,10 +158,13 @@ void ASTListLogger(void* item, int index) {
     logASTNode(node, 0);
 }
 
-int main(int argc, char const **argv) {
+int main(int argc, char **argv) {
     if(argc == 1) return 0;
 
     const char* filePath = argv[1];
+
+    ParseArgvResult options;
+    Utils.parseArgv(argc, argv, &options);
 
     FILE *fp = fopen(filePath, "r");
 
@@ -202,16 +205,23 @@ int main(int argc, char const **argv) {
 
     fclose(fp);
 
-    // printf("Tokens: \n");
-    // LinkedList.forEach(tokens, logToken);
-    // printf("\n\n");
+    if(options.tokens) {
+        printf("Tokens: \n");
+        LinkedList.forEach(tokens, logToken);
+        printf("\n\n");
+    }
 
     List* ast = AST.createASTFromTokens(tokens);
 
-    printf("AST: \n");
-    LinkedList.forEach(ast, ASTListLogger);
+    if(options.ast) {
+        printf("AST: \n");
+        LinkedList.forEach(ast, ASTListLogger);
+        printf("\n\n");
+    }
 
-    Runtime.run(ast);
+    if(!options.dry) {
+        Runtime.run(ast);
+    }
 
     return 0;
 }
