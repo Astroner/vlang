@@ -118,12 +118,21 @@ void logASTNode(ASTNode* node, int padding) {
         logPadding(padding + 1);
         printf("Return Type: %s\n", AST.NodeType[declaration->returnType]);
         logPadding(padding + 1);
-        printf("Arguments Length: %d\n", declaration->argumentsLength);
+        printf("Arguments Count: %d\n", declaration->argumentsCount);
         logPadding(padding + 1);
         printf("Arguments:\n");
         ListNode* current = declaration->arguments;
+        ASTNode* node;
         while(1) {
-            ASTNode* node = current->value;
+            node = current->value;
+            logASTNode(node, padding + 2);
+            if(!(current = current->next)) break;
+        }
+        logPadding(padding + 1);
+        printf("Statements:\n");
+        current = declaration->statements;
+        while(1) {
+            node = current->value;
             logASTNode(node, padding + 2);
             if(!(current = current->next)) break;
         }
@@ -135,6 +144,12 @@ void logASTNode(ASTNode* node, int padding) {
         logPadding(padding + 1);
         printf("Name:\n");
         logASTNode(declaration->name, padding + 2);
+    }
+    if(node->kind == AST_KIND_RETURN_STATEMENT) {
+        ReturnStatementValue* expression = node->value;
+        logPadding(padding + 1);
+        printf("Expression:\n");
+        logASTNode(expression, padding + 2);
     }
 }
 

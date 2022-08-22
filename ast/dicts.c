@@ -8,6 +8,7 @@ static char* NodeKind[] = {
     "AST_KIND_UNARY_EXPRESSION",
     "AST_KIND_FUNCTION_DEFINITION",
     "AST_KIND_FUNCTION_ARGUMENT",
+    "AST_KIND_RETURN_STATEMENT"
 };
 
 static char* NodeType[] = {

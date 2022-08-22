@@ -1,5 +1,5 @@
 #if !defined(PARSE_STATEMENTS_FUNCTIONS)
-#define PARSE_STATEMENTS_FUNCTIONS;
+#define PARSE_STATEMENTS_FUNCTIONS
 
 #include "../../linkedList/linkedList.h"
 

@@ -3,7 +3,7 @@
 #if !defined(AST_H)
 #define AST_H
 
-#define AST_KIND unsigned char
+typedef int AST_KIND;
 #define AST_KIND_BLANK 0
 
 #define AST_KIND_VARIABLE_DECLARATION 1
@@ -14,12 +14,13 @@
 #define AST_KIND_UNARY_EXPRESSION 6
 #define AST_KIND_FUNCTION_DEFINITION 7
 #define AST_KIND_FUNCTION_ARGUMENT 8
+#define AST_KIND_RETURN_STATEMENT 9
 
-#define AST_NODE_TYPE int
+typedef int AST_NODE_TYPE;
 #define AST_NODE_TYPE_BLANK 0
 #define AST_NODE_TYPE_NUMBER 1
 
-#define AST_BINOMIAL_EXPRESSION_TYPE int
+typedef int AST_BINOMIAL_EXPRESSION_TYPE;
 #define AST_BINOMIAL_EXPRESSION_TYPE_BLANK 0
 #define AST_BINOMIAL_EXPRESSION_TYPE_SUM 1
 #define AST_BINOMIAL_EXPRESSION_TYPE_SUBTRACTION 2
@@ -27,7 +28,7 @@
 #define AST_BINOMIAL_EXPRESSION_TYPE_DIVISION 4
 #define AST_BINOMIAL_EXPRESSION_TYPE_POWER 5
 
-#define AST_UNARY_EXPRESSION_TYPE int
+typedef int AST_UNARY_EXPRESSION_TYPE;
 #define AST_UNARY_EXPRESSION_TYPE_BLANK 0
 #define AST_UNARY_EXPRESSION_TYPE_NEGATIVE 1
 
@@ -67,7 +68,7 @@ typedef struct {
 typedef struct {
     ASTNode* name;
     AST_NODE_TYPE returnType;
-    unsigned int argumentsLength;
+    unsigned int argumentsCount;
     List* arguments;
     List* statements;
 } FunctionDefinitionValue;
@@ -79,6 +80,8 @@ typedef struct {
     char** BinomialExpressionType;
     char** UnaryExpressionType;
 } ASTModuleType;
+
+#define ReturnStatementValue ASTNode
 
 ASTModuleType AST;
 

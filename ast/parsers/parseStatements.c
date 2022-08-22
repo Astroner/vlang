@@ -31,8 +31,10 @@ List* parseStatements(List* tokens, unsigned int contentLength) {
 
     unsigned int length = 1;
     
+    ParserResult parserResult;
     while(1) {
         Token* token = current->value;
+        printf("TOKEN: %s, %d/%d\n", t2s(token), length, contentLength);
         switch(token->type) {
             case TOKEN_NUMBER_KEYWORD: {
                 if(guess == GUESS_TYPE_BLANK) {
@@ -45,14 +47,17 @@ List* parseStatements(List* tokens, unsigned int contentLength) {
             }
             case TOKEN_IDENTIFIER: {
                 if(guess == GUESS_TYPE_BLANK) {
+                    Parsers.parseFunctionCall(
+                        nodeStart,
+                        &parserResult
+                    );
                     LinkedList.pushItem(
                         nodes, 
-                        Parsers.parseFunctionCall(
-                            nodeStart,
-                            current
-                        )
+                        parserResult.node
                     );
+                    current = parserResult.lastNode;
                     nodeStart = current->next;
+                    length += parserResult.length - 1;
                 } else if(!guessIncludes(guess, GUESS_TYPE_FUNCTION_DEFINITION | GUESS_TYPE_VARIABLE_DEFINITION)) {
                     fprintf(stderr, "[ERROR][AST][531840349f39] Unexpected identifier '%s'\n", token->value);
                     exit(1);
@@ -61,15 +66,18 @@ List* parseStatements(List* tokens, unsigned int contentLength) {
             }
             case TOKEN_EQUAL: {
                 if(guessIncludes(guess, GUESS_TYPE_VARIABLE_DEFINITION)) {
+                    Parsers.parseVariableDefinition(
+                        nodeStart,
+                        &parserResult
+                    );
                     LinkedList.pushItem(
                         nodes, 
-                        Parsers.parseVariableDefinition(
-                            nodeStart,
-                            current
-                        )
+                        parserResult.node
                     );
+                    current = parserResult.lastNode;
                     nodeStart = current->next;
                     guess = GUESS_TYPE_BLANK;
+                    length += parserResult.length - 3;
                 } else {
                     fprintf(stderr, "[ERROR][AST][aafda74de839] Unexpected token '='\n");
                     exit(1);
@@ -78,17 +86,33 @@ List* parseStatements(List* tokens, unsigned int contentLength) {
             }
             case TOKEN_OPEN_BRACKET: {
                 if(guessIncludes(guess, GUESS_TYPE_FUNCTION_DEFINITION)) {
+                    Parsers.parseFunctionDefinition(
+                        nodeStart,
+                        &parserResult
+                    );
                     LinkedList.pushItem(
                         nodes, 
-                        Parsers.parseFunctionDefinition(
-                            nodeStart,
-                            current
-                        )
+                        parserResult.node
                     );
+                    current = parserResult.lastNode;
                     nodeStart = current->next;
                     guess = GUESS_TYPE_BLANK;
+                    length += parserResult.length - 3;
                 } else {
                     fprintf(stderr, "[ERROR][AST][c9528490b4c6] Unexpected token '('\n");
+                    exit(1);
+                }
+                break;
+            }
+            case TOKEN_RETURN_KEYWORD: {
+                if(guess == GUESS_TYPE_BLANK && contentLength != 0) {
+                    Parsers.parseReturnStatement(nodeStart, &parserResult);
+                    LinkedList.pushItem(nodes, parserResult.node);
+                    current = parserResult.lastNode;
+                    nodeStart = current->next;
+                    length += parserResult.length - 1;
+                } else {
+                    fprintf(stderr, "[ERROR][AST][18d1564eb42a] Unexpected 'return' keyword\n");
                     exit(1);
                 }
                 break;

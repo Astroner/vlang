@@ -9,8 +9,9 @@
 #include "../../token/token.h"
 
 #include "parseTokenExpression.h"
+#include "parseStatements.h"
 
-static ASTNode* parseVariableDefinition(List* tokens, ListNode* lastNode) {
+static void parseVariableDefinition(List* tokens, ParserResult* result) {
     ASTNode* name;
     AST_NODE_TYPE variableType = AST_NODE_TYPE_BLANK;
     ASTNode* value;
@@ -51,7 +52,7 @@ static ASTNode* parseVariableDefinition(List* tokens, ListNode* lastNode) {
         Token* token = current->value;
         if(token->type == TOKEN_SEMICOLON) {
             value = parseTokenExpression(expressionStart, FALSE, FALSE, NULL, NULL, expressionLength);
-            *lastNode = *current;
+            result->lastNode = current;
             break;
         }
         if(!(current = current->next)) {
@@ -61,10 +62,11 @@ static ASTNode* parseVariableDefinition(List* tokens, ListNode* lastNode) {
         expressionLength++;
     }
 
-    return Creators.createVariableDeclaration(name, variableType, value);
+    result->node = Creators.createVariableDeclaration(name, variableType, value);
+    result->length = expressionLength + 4;
 }
 
-static ASTNode* parseFunctionCall(List* tokens, ListNode* lastItem) {
+static void parseFunctionCall(List* tokens, ParserResult* result) {
     ASTNode* name;
     int argumentsLength = 0;
     List* arguments = LinkedList.createList();
@@ -127,9 +129,9 @@ static ASTNode* parseFunctionCall(List* tokens, ListNode* lastItem) {
         exit(1);
     }
 
-    *lastItem = *semicolonNode;
-
-    return Creators.createFunctionCall(name, argumentsLength, arguments);
+    result->lastNode = semicolonNode;
+    result->length = length + 3;
+    result->node = Creators.createFunctionCall(name, argumentsLength, arguments);
 }
 
 static ASTNode* parseFunctionArgument(List* tokens, unsigned int argumentLength) {
@@ -162,12 +164,10 @@ static ASTNode* parseFunctionArgument(List* tokens, unsigned int argumentLength)
     return Creators.createFunctionArgument(name, type);
 }
 
-static ASTNode* parseFunctionDefinition(List* tokens, ListNode* lastItem) {
+static void parseFunctionDefinition(List* tokens, ParserResult* result) {
     ASTNode* name;
-    unsigned int argumentsLength = 0;
     List* arguments = LinkedList.createList();
-    AST_NODE_TYPE returnType = AST_NODE_TYPE_BLANK;
-    List* statements = LinkedList.createList();
+    AST_NODE_TYPE returnType = AST_NODE_TYPE_BLANK; 
 
     Token* typeToken = tokens->value;
 
@@ -201,10 +201,14 @@ static ASTNode* parseFunctionDefinition(List* tokens, ListNode* lastItem) {
         fprintf(stderr, "[ERROR][AST][a47b9f703c02] Expected arguments\n");
         exit(1);
     }
+
+    unsigned int argumentsCount = 0;
+    unsigned int argumentsTokenLength = 0;
     unsigned int currentArgumentLength = 0;
     ListNode* currentArgumentStart = current;
     Token* token;
     while(1) {
+        argumentsTokenLength++;
         token = current->value;
         if(token->type == TOKEN_COMMA) {
             LinkedList.pushItem(
@@ -216,7 +220,7 @@ static ASTNode* parseFunctionDefinition(List* tokens, ListNode* lastItem) {
             );
             currentArgumentLength = 0;
             currentArgumentStart = current->next;
-            argumentsLength++;
+            argumentsCount++;
         } else if(token->type == TOKEN_CLOSE_BRACKET) {
             LinkedList.pushItem(
                 arguments,
@@ -225,7 +229,7 @@ static ASTNode* parseFunctionDefinition(List* tokens, ListNode* lastItem) {
                     currentArgumentLength
                 )
             );
-            argumentsLength++;
+            argumentsCount++;
             break;
         } else {
             currentArgumentLength++;
@@ -261,24 +265,52 @@ static ASTNode* parseFunctionDefinition(List* tokens, ListNode* lastItem) {
             exit(1);
         }
     }
-    printf("BODY LENGTH: %d\n", bodyLength);
-    *lastItem = *current;
+    List* statements = parseStatements(bodyOpenNode->next, bodyLength);
 
-    return Creators.createFunctionDefinition(
+
+    result->lastNode = current;
+    result->length = 3 + argumentsTokenLength + 1 + bodyLength + 1;
+    result->node = Creators.createFunctionDefinition(
         name, 
         returnType, 
-        argumentsLength,
+        argumentsCount,
         arguments,
         statements
     );
 }
 
-static List* parseStatements(List* tokens, unsigned int length) {
+static void parseReturnStatement(List* tokens, ParserResult* result) {
+    ReturnStatementValue* value;
 
+    ListNode* current = tokens->next;
+    if(current == NULL) {
+        fprintf(stderr, "[ERROR][AST][f9758b8cf250] Expected expression after return statement\n");
+        exit(1);
+    }
+    ListNode* expressionStart = current;
+    int expressionLength = 0;
+    while(1) {
+        Token* token = current->value;
+        if(token->type == TOKEN_SEMICOLON) {
+            value = parseTokenExpression(expressionStart, FALSE, FALSE, NULL, NULL, expressionLength);
+            break;
+        }
+
+        expressionLength++;
+        if(!(current = current->next)) {
+            fprintf(stderr, "[ERROR][AST][7200110bae25] Expected ';' at the end of the return statement\n");
+            exit(1);
+        }
+    }
+
+    result->node = Creators.createReturnStatement(value);
+    result->lastNode = current;
+    result->length = 1 + expressionLength;
 }
 
 ParsersType Parsers = {
     parseVariableDefinition,
     parseFunctionCall,
     parseFunctionDefinition,
+    parseReturnStatement,
 };
