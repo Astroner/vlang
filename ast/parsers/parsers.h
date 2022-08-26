@@ -12,10 +12,16 @@ typedef struct {
 } ParserResult;
 
 typedef struct {
-    void (*parseVariableDefinition)(List* tokens, int contentLength, ParserResult* result);
-    void (*parseFunctionCall)(List* tokens, int contentLength, BOOL semicolonAtTheEnd, ParserResult* result);
-    void (*parseFunctionDefinition)(List* tokens, int contentLength, ParserResult* result);
-    void (*parseReturnStatement)(List* tokens, int contentLength, ParserResult* result);
+    unsigned int length;
+    ListNode* closeBracket;
+} BracketsRange;
+
+typedef struct {
+    void (*parseVariableDefinition)(List* tokens, int listLimit, ParserResult* result);
+    void (*parseFunctionCall)(List* tokens, int listLimit, BOOL semicolonAtTheEnd, ParserResult* result);
+    void (*parseFunctionDefinition)(List* tokens, int listLimit, ParserResult* result);
+    void (*parseReturnStatement)(List* tokens, int listLimit, ParserResult* result);
+    void (*parseBracketsRange)(List* tokens, unsigned int listLimit, BracketsRange* result);
 } ParsersType;
 
 ParsersType Parsers;

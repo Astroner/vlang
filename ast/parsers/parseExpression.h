@@ -5,7 +5,7 @@
 #include "../../main.h"
 #include "../ast.h"
 
-ASTNode* parseTokenExpression(
+ASTNode* parseExpression(
     List* tokens,
     unsigned int contentLength
 );

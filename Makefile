@@ -5,7 +5,7 @@ SOURCES = main.c \
 		  ast/ast.c \
 		  	ast/creators/creators.c \
 			ast/parsers/parsers.c \
-			ast/parsers/parseTokenExpression.c \
+			ast/parsers/parseExpression.c \
 			ast/parsers/parseStatements.c \
 		  HashTable/HashTable.c \
 		  runtime/runtime.c

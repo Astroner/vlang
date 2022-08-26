@@ -8,10 +8,10 @@
 #include "../../main.h"
 #include "../../token/token.h"
 
-#include "parseTokenExpression.h"
+#include "parseExpression.h"
 #include "parseStatements.h"
 
-static void parseVariableDefinition(List* tokens, int contentLength, ParserResult* result) {
+static void parseVariableDefinition(List* tokens, int listLimit, ParserResult* result) {
     ASTNode* name;
     AST_NODE_TYPE variableType = AST_NODE_TYPE_BLANK;
     ASTNode* value;
@@ -51,12 +51,12 @@ static void parseVariableDefinition(List* tokens, int contentLength, ParserResul
     while(1) {
         Token* token = current->value;
         if(token->type == TOKEN_SEMICOLON) {
-            value = parseTokenExpression(expressionStart, expressionLength);
+            value = parseExpression(expressionStart, expressionLength);
             result->lastNode = current;
             break;
         }
         expressionLength++;
-        if(!(current = current->next) || (contentLength > 0 && expressionLength == contentLength)) {
+        if(!(current = current->next) || (listLimit > 0 && expressionLength == listLimit)) {
             fprintf(stderr, "[ERROR][AST][28af67d048f6] Expected semicolon at the end of the expression\n");
             exit(1);
         }
@@ -66,7 +66,7 @@ static void parseVariableDefinition(List* tokens, int contentLength, ParserResul
     result->length = expressionLength + 4;
 }
 
-static void parseFunctionCall(List* tokens, int contentLength, BOOL semicolonAtTheEnd,ParserResult* result) {
+static void parseFunctionCall(List* tokens, int listLimit, BOOL semicolonAtTheEnd,ParserResult* result) {
     ASTNode* name;
     int argumentsLength = 0;
     List* arguments = LinkedList.createList();
@@ -90,7 +90,7 @@ static void parseFunctionCall(List* tokens, int contentLength, BOOL semicolonAtT
         Token* token = current->value;
 
         if(token->type == TOKEN_COMMA && bracketsDepth == 0) {
-            LinkedList.pushItem(arguments, parseTokenExpression(argStart, argumentTokenLength));
+            LinkedList.pushItem(arguments, parseExpression(argStart, argumentTokenLength));
             if(!current->next) {
                 fprintf(stderr, "[ERROR][AST][6f1c62336fdb] Expected another argument after ',' token\n");
                 exit(1);
@@ -104,7 +104,7 @@ static void parseFunctionCall(List* tokens, int contentLength, BOOL semicolonAtT
         } else if(token->type == TOKEN_CLOSE_BRACKET) {
             if(bracketsDepth == 0) {
                 argumentsLength++;
-                LinkedList.pushItem(arguments, parseTokenExpression(argStart, argumentTokenLength));
+                LinkedList.pushItem(arguments, parseExpression(argStart, argumentTokenLength));
                 countable = FALSE;
                 break;
             } else {
@@ -116,7 +116,7 @@ static void parseFunctionCall(List* tokens, int contentLength, BOOL semicolonAtT
             argumentTokenLength++;
         }
 
-        if(!(current = current->next) || (contentLength > 0 && length == contentLength)) {
+        if(!(current = current->next) || (listLimit > 0 && length == listLimit)) {
             fprintf(stderr, "[ERROR][AST][1541db82e715] Unexpected end of arguments\n");
             exit(1);
         }
@@ -168,7 +168,7 @@ static ASTNode* parseFunctionArgument(List* tokens, unsigned int argumentLength)
     return Creators.createFunctionArgument(name, type);
 }
 
-static void parseFunctionDefinition(List* tokens, int contentLength, ParserResult* result) {
+static void parseFunctionDefinition(List* tokens, int listLimit, ParserResult* result) {
     ASTNode* name;
     List* arguments = LinkedList.createList();
     AST_NODE_TYPE returnType = AST_NODE_TYPE_BLANK; 
@@ -283,7 +283,7 @@ static void parseFunctionDefinition(List* tokens, int contentLength, ParserResul
     );
 }
 
-static void parseReturnStatement(List* tokens, int contentLength, ParserResult* result) {
+static void parseReturnStatement(List* tokens, int listLimit, ParserResult* result) {
     ReturnStatementValue* value;
 
     ListNode* current = tokens->next;
@@ -296,12 +296,12 @@ static void parseReturnStatement(List* tokens, int contentLength, ParserResult* 
     while(1) {
         Token* token = current->value;
         if(token->type == TOKEN_SEMICOLON) {
-            value = parseTokenExpression(expressionStart, expressionLength);
+            value = parseExpression(expressionStart, expressionLength);
             break;
         }
 
         expressionLength++;
-        if(!(current = current->next) || (contentLength > 0 && expressionLength == contentLength)) {
+        if(!(current = current->next) || (listLimit > 0 && expressionLength == listLimit)) {
             fprintf(stderr, "[ERROR][AST][7200110bae25] Expected ';' at the end of the return statement\n");
             exit(1);
         }
@@ -312,9 +312,51 @@ static void parseReturnStatement(List* tokens, int contentLength, ParserResult* 
     result->length = 1 + expressionLength;
 }
 
+static void parseBracketsRange(List* tokens, unsigned int listLimit, BracketsRange* result) {
+    ListNode* openBracketNode = tokens;
+
+    if(openBracketNode->next == NULL) {
+        fprintf(stderr, "[ERROR][AST][6e1e02e08a18] Expected expression\n");
+        exit(1);
+    }
+
+    ListNode* current = openBracketNode->next;
+    unsigned int rangeLength = 0;
+    unsigned int bracketsDepth = 0;
+    while(1) {
+        Token* token = current->value;
+        rangeLength++;
+        // printf("Token: '%s', length: %d\n", t2s(token), rangeLength);
+
+        switch(token->type) {
+            case TOKEN_OPEN_BRACKET: {
+                bracketsDepth++;
+                break;
+            }
+            case TOKEN_CLOSE_BRACKET: {
+                if(bracketsDepth == 0) {
+                    result->closeBracket = current;
+                    result->length = rangeLength + 1;
+                    return;
+                } else {
+                    bracketsDepth--;
+                }
+                break;
+            }
+        }
+        
+
+        if(!(current = current->next) || (listLimit > 0 && rangeLength == listLimit)) {
+            fprintf(stderr, "[ERROR][AST][0036d7ae61c6] Expected closing bracket\n");
+            exit(1);
+        }
+    }
+}
+
 ParsersType Parsers = {
     parseVariableDefinition,
     parseFunctionCall,
     parseFunctionDefinition,
     parseReturnStatement,
+    parseBracketsRange,
 };

@@ -1,4 +1,4 @@
-#include "parseTokenExpression.h"
+#include "parseExpression.h"
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -20,7 +20,7 @@ static Priority binomialOperationPriorities[] = {
     /* AST_BINOMIAL_EXPRESSION_TYPE_POWER */            3,
 };
 
-static ASTNode* parseExpression(
+static ASTNode* parseTokenExpression(
     List* tokens,
     unsigned int contentLength,
     ASTNode* __first
@@ -31,6 +31,7 @@ static ASTNode* parseExpression(
     AST_BINOMIAL_EXPRESSION_TYPE binomialExpressionType = AST_BINOMIAL_EXPRESSION_TYPE_BLANK;
     AST_UNARY_EXPRESSION_TYPE unaryExpressionType = AST_UNARY_EXPRESSION_TYPE_BLANK;
 
+    BracketsRange bracketsRange;
     ParserResult parserResult;
     BOOL exitLoop = FALSE;
     ListNode* current = tokens;
@@ -115,7 +116,7 @@ static ASTNode* parseExpression(
                             && binomialExpressionType == AST_BINOMIAL_EXPRESSION_TYPE_POWER
                         )
                     ) {
-                        second = parseExpression(
+                        second = parseTokenExpression(
                             current,
                             contentLength - length,
                             second
@@ -134,6 +135,30 @@ static ASTNode* parseExpression(
                     fprintf(stderr, "[ERROR][AST][feffd65dc6b4] Unexpected token '%s'\n", t2s(token));
                     exit(1);
                 }
+                break;
+            }
+            case TOKEN_OPEN_BRACKET: {
+                if(
+                    (second != NULL && first != NULL)
+                    || (first != NULL && binomialExpressionType == AST_BINOMIAL_EXPRESSION_TYPE_BLANK)
+                ) {
+                    fprintf(stderr, "[ERROR][AST][727ef76ae065] Unexpected open bracket\n");
+                    exit(1);
+                }
+                Parsers.parseBracketsRange(
+                    current,
+                    contentLength - length,
+                    &bracketsRange
+                );
+
+                if(first == NULL) {
+                    first = parseTokenExpression(current->next, bracketsRange.length - 2, NULL);
+                } else {
+                    second = parseTokenExpression(current->next, bracketsRange.length - 2, NULL);
+                }
+                
+                current = bracketsRange.closeBracket;
+                length += bracketsRange.length - 1;
                 break;
             }
             default: {
@@ -165,9 +190,9 @@ static ASTNode* parseExpression(
     exit(1);
 }
 
-ASTNode* parseTokenExpression(
+ASTNode* parseExpression(
     List* tokens,
     unsigned int contentLength
 ) {
-    return parseExpression(tokens, contentLength, NULL);
+    return parseTokenExpression(tokens, contentLength, NULL);
 }
