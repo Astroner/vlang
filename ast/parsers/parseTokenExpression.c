@@ -144,7 +144,7 @@ ASTNode* parseTokenExpression(
                             // >40< + 20 * 4; first = 40; second = NULL; operation = NONE
                             // 40 >+< 20 * 4; first = 40; second = NULL; operation = SUM
                             // 40 + >20< * 4; first = 40; second = 20; operation = SUM
-                            // 40 + 20 >*< 4; first = 40; second = 20; operation = SUM; here we got prioritized incoming operation and run the recursion with preset first operand
+                            // 40 + 20 >*< 4; first = 40; second = 20; operation = SUM; here we got prioritized incoming operation and we start the recursion with preset first operand
                             // >*< 4; first = 20; second = NULL; operation = MULT
                             // * >4<; first = 20; second = 4; operation = MULT
                             // then we return the result back to the main operation and skip all parsed tokens
