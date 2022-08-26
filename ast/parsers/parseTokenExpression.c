@@ -109,12 +109,19 @@ static ASTNode* parseExpression(
                     binomialExpressionType = binomialOperation;
                 } else if (second != NULL) {
                     if(
-                        operationPriority(binomialOperation) < operationPriority(binomialExpressionType) 
+                        operationPriority(binomialOperation) > operationPriority(binomialExpressionType) 
                         || (
                             binomialOperation == AST_BINOMIAL_EXPRESSION_TYPE_POWER 
                             && binomialExpressionType == AST_BINOMIAL_EXPRESSION_TYPE_POWER
                         )
                     ) {
+                        second = parseExpression(
+                            current,
+                            contentLength - length,
+                            second
+                        );
+                        exitLoop = TRUE;
+                    } else {
                         first = Creators.createBinomialExpression(
                             binomialExpressionType,
                             first,
@@ -122,13 +129,6 @@ static ASTNode* parseExpression(
                         );
                         binomialExpressionType = binomialOperation;
                         second = NULL;
-                    } else {
-                        second = parseExpression(
-                            current,
-                            contentLength - length,
-                            second
-                        );
-                        exitLoop = TRUE;
                     }
                 } else {
                     fprintf(stderr, "[ERROR][AST][feffd65dc6b4] Unexpected token '%s'\n", t2s(token));
