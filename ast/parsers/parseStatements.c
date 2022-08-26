@@ -49,6 +49,7 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInsideFun
                     Parsers.parseFunctionCall(
                         nodeStart,
                         contentLength - length,
+                        TRUE,
                         &parserResult
                     );
                     LinkedList.pushItem(

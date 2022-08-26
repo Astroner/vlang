@@ -51,7 +51,7 @@ static void parseVariableDefinition(List* tokens, int contentLength, ParserResul
     while(1) {
         Token* token = current->value;
         if(token->type == TOKEN_SEMICOLON) {
-            value = parseTokenExpression(expressionStart, FALSE, FALSE, NULL, NULL, expressionLength);
+            value = parseTokenExpression(expressionStart, expressionLength);
             result->lastNode = current;
             break;
         }
@@ -66,7 +66,7 @@ static void parseVariableDefinition(List* tokens, int contentLength, ParserResul
     result->length = expressionLength + 4;
 }
 
-static void parseFunctionCall(List* tokens, int contentLength, ParserResult* result) {
+static void parseFunctionCall(List* tokens, int contentLength, BOOL semicolonAtTheEnd,ParserResult* result) {
     ASTNode* name;
     int argumentsLength = 0;
     List* arguments = LinkedList.createList();
@@ -90,7 +90,7 @@ static void parseFunctionCall(List* tokens, int contentLength, ParserResult* res
         Token* token = current->value;
 
         if(token->type == TOKEN_COMMA && bracketsDepth == 0) {
-            LinkedList.pushItem(arguments, parseTokenExpression(argStart, FALSE, FALSE, NULL, NULL, argumentTokenLength));
+            LinkedList.pushItem(arguments, parseTokenExpression(argStart, argumentTokenLength));
             if(!current->next) {
                 fprintf(stderr, "[ERROR][AST][6f1c62336fdb] Expected another argument after ',' token\n");
                 exit(1);
@@ -104,7 +104,7 @@ static void parseFunctionCall(List* tokens, int contentLength, ParserResult* res
         } else if(token->type == TOKEN_CLOSE_BRACKET) {
             if(bracketsDepth == 0) {
                 argumentsLength++;
-                LinkedList.pushItem(arguments, parseTokenExpression(argStart, FALSE, FALSE, NULL, NULL, argumentTokenLength));
+                LinkedList.pushItem(arguments, parseTokenExpression(argStart, argumentTokenLength));
                 countable = FALSE;
                 break;
             } else {
@@ -124,12 +124,16 @@ static void parseFunctionCall(List* tokens, int contentLength, ParserResult* res
 
     ListNode* semicolonNode = current->next;
 
-    if(semicolonNode == NULL || ((Token*)semicolonNode->value)->type != TOKEN_SEMICOLON) {
+    if(semicolonAtTheEnd && (semicolonNode == NULL || ((Token*)semicolonNode->value)->type != TOKEN_SEMICOLON)) {
         fprintf(stderr, "[ERROR][AST][bcbf3f4f793e] Expected semicolon at the end of the function call\n");
         exit(1);
     }
 
-    result->lastNode = semicolonNode;
+    if(semicolonAtTheEnd) {
+        result->lastNode = semicolonNode;
+    } else {
+        result->lastNode = current;
+    }
     result->length = length + 3;
     result->node = Creators.createFunctionCall(name, argumentsLength, arguments);
 }
@@ -292,7 +296,7 @@ static void parseReturnStatement(List* tokens, int contentLength, ParserResult* 
     while(1) {
         Token* token = current->value;
         if(token->type == TOKEN_SEMICOLON) {
-            value = parseTokenExpression(expressionStart, FALSE, FALSE, NULL, NULL, expressionLength);
+            value = parseTokenExpression(expressionStart, expressionLength);
             break;
         }
 
