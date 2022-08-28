@@ -15,6 +15,7 @@ typedef int AST_KIND;
 #define AST_KIND_FUNCTION_DEFINITION 7
 #define AST_KIND_FUNCTION_ARGUMENT 8
 #define AST_KIND_RETURN_STATEMENT 9
+#define AST_KIND_VARIABLE_ASSIGNMENT 10
 
 typedef int AST_NODE_TYPE;
 #define AST_NODE_TYPE_BLANK 0
@@ -72,6 +73,11 @@ typedef struct {
     List* arguments;
     List* statements;
 } FunctionDefinitionValue;
+
+typedef struct {
+    ASTNode* name;
+    ASTNode* value;
+} VariableAssignmentValue;
 
 typedef struct {
     List* (*createASTFromTokens)(List* token);

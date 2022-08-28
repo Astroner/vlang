@@ -355,10 +355,45 @@ static void parseBracketsRange(List* tokens, unsigned int listLimit, BracketsRan
     }
 }
 
+static void parseVariableAssignment(List* tokens, int listLimit, ParserResult* result) {
+    ASTNode* name;
+    ASTNode* value;
+
+    Token* nameToken = tokens->value;
+    if(nameToken->type != TOKEN_IDENTIFIER) {
+        fprintf(stderr, "[ERROR][AST][96aa13f0528a] Unexpected token as identifier '%s'\n", t2s(nameToken));
+        exit(1);
+    }
+
+    name = Creators.createIdentifier(nameToken->value);
+
+    ListNode* equalNode = tokens->next;
+
+    ListNode* current = equalNode->next;
+    ListNode* expressionStart = current;
+    unsigned int expressionLength = 0;
+    while(1) {
+        Token* token = current->value;
+        if(token->type == TOKEN_SEMICOLON) {
+            value = parseExpression(expressionStart, expressionLength);
+            result->lastNode = current;
+            break;
+        }
+        expressionLength++;
+        if(!(current = current->next) || (listLimit > 0 && expressionLength == listLimit)) {
+            fprintf(stderr, "[ERROR][AST][28af67d048f6] Expected semicolon at the end of the expression\n");
+            exit(1);
+        }
+    }
+    result->node = Creators.createVariableAssignment(name, value);
+    result->length = expressionLength + 3;
+}
+
 ParsersType Parsers = {
     parseVariableDefinition,
     parseFunctionCall,
     parseFunctionDefinition,
     parseReturnStatement,
     parseBracketsRange,
+    parseVariableAssignment,
 };

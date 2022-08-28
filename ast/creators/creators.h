@@ -13,6 +13,7 @@ typedef struct {
     ASTNode* (*createFunctionDefinition)(ASTNode* name, AST_NODE_TYPE returnType, unsigned int argumentsCount, List* arguments, List* statements);
     ASTNode* (*createFunctionArgument)(ASTNode* name, AST_NODE_TYPE type);
     ASTNode* (*createReturnStatement)(ASTNode* value);
+    ASTNode* (*createVariableAssignment)(ASTNode* name, ASTNode* value);
 } CreatorsType;
 
 CreatorsType Creators;

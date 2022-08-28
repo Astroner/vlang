@@ -151,6 +151,15 @@ void logASTNode(ASTNode* node, int padding) {
         printf("Expression:\n");
         logASTNode(expression, padding + 2);
     }
+    if(node->kind == AST_KIND_VARIABLE_ASSIGNMENT) {
+        VariableAssignmentValue* assignment = node->value;
+        logPadding(padding + 1);
+        printf("Name:\n");
+        logASTNode(assignment->name, padding + 2);
+        logPadding(padding + 1);
+        printf("Value:\n");
+        logASTNode(assignment->value, padding + 2);
+    }
 }
 
 void ASTListLogger(void* item, int index) {

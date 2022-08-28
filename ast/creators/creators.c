@@ -121,6 +121,19 @@ static ASTNode* createReturnStatement(ASTNode* value) {
     return node;
 }
 
+ASTNode* createVariableAssignment(ASTNode* name, ASTNode* value) {
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->kind = AST_KIND_VARIABLE_ASSIGNMENT;
+
+    VariableAssignmentValue* assignment = malloc(sizeof(VariableAssignmentValue));
+    assignment->name = name;
+    assignment->value = value;
+
+    node->value = assignment;
+
+    return node;
+}
+
 CreatorsType Creators = {
     createVariableDeclaration,
     createIdentifier,
@@ -131,4 +144,5 @@ CreatorsType Creators = {
     createFunctionDefinition,
     createFunctionArgument,
     createReturnStatement,
+    createVariableAssignment
 };

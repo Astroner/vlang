@@ -8,10 +8,11 @@
 
 
 #define GUESS_TYPE unsigned int
-#define GUESS_TYPE_BLANK 0
-#define GUESS_TYPE_VARIABLE_DEFINITION 1
-#define GUESS_TYPE_FUNCTION_DEFINITION 2
-#define GUESS_TYPE_FUNCTION_CALL 4
+#define GUESS_TYPE_BLANK 0b0
+#define GUESS_TYPE_VARIABLE_DEFINITION 0b1
+#define GUESS_TYPE_FUNCTION_DEFINITION 0b10
+#define GUESS_TYPE_FUNCTION_CALL 0b100
+#define GUESS_TYPE_VARIABLE_ASSIGNMENT 0b1000
 #define guessIncludes(guess, toCheck) ((guess & (toCheck)) == (toCheck))
 
 /**
@@ -46,19 +47,7 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInsideFun
             }
             case TOKEN_IDENTIFIER: {
                 if(guess == GUESS_TYPE_BLANK) {
-                    Parsers.parseFunctionCall(
-                        nodeStart,
-                        contentLength - length,
-                        TRUE,
-                        &parserResult
-                    );
-                    LinkedList.pushItem(
-                        nodes, 
-                        parserResult.node
-                    );
-                    current = parserResult.lastNode;
-                    nodeStart = current->next;
-                    length += parserResult.length - 1;
+                    guess = GUESS_TYPE_FUNCTION_CALL | GUESS_TYPE_VARIABLE_ASSIGNMENT;
                 } else if(!guessIncludes(guess, GUESS_TYPE_FUNCTION_DEFINITION | GUESS_TYPE_VARIABLE_DEFINITION)) {
                     fprintf(stderr, "[ERROR][AST][531840349f39] Unexpected identifier '%s'\n", token->value);
                     exit(1);
@@ -69,7 +58,7 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInsideFun
                 if(guessIncludes(guess, GUESS_TYPE_VARIABLE_DEFINITION)) {
                     Parsers.parseVariableDefinition(
                         nodeStart,
-                        contentLength - length - 2,
+                        contentLength - length + 2,
                         &parserResult
                     );
                     LinkedList.pushItem(
@@ -80,6 +69,20 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInsideFun
                     nodeStart = current->next;
                     guess = GUESS_TYPE_BLANK;
                     length += parserResult.length - 3;
+                } else if(guessIncludes(guess, GUESS_TYPE_VARIABLE_ASSIGNMENT)) {
+                    Parsers.parseVariableAssignment(
+                        nodeStart,
+                        contentLength - length + 1,
+                        &parserResult
+                    );
+                    LinkedList.pushItem(
+                        nodes, 
+                        parserResult.node
+                    );
+                    current = parserResult.lastNode;
+                    nodeStart = current->next;
+                    guess = GUESS_TYPE_BLANK;
+                    length += parserResult.length - 2;
                 } else {
                     fprintf(stderr, "[ERROR][AST][aafda74de839] Unexpected token '='\n");
                     exit(1);
@@ -90,7 +93,7 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInsideFun
                 if(guessIncludes(guess, GUESS_TYPE_FUNCTION_DEFINITION)) {
                     Parsers.parseFunctionDefinition(
                         nodeStart,
-                        contentLength - length - 2,
+                        contentLength - length + 2,
                         &parserResult
                     );
                     LinkedList.pushItem(
@@ -101,6 +104,20 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInsideFun
                     nodeStart = current->next;
                     guess = GUESS_TYPE_BLANK;
                     length += parserResult.length - 3;
+                } else if(guessIncludes(guess, GUESS_TYPE_FUNCTION_CALL)){
+                    Parsers.parseFunctionCall(
+                        nodeStart,
+                        contentLength - length + 1,
+                        TRUE,
+                        &parserResult
+                    );
+                    LinkedList.pushItem(
+                        nodes, 
+                        parserResult.node
+                    );
+                    current = parserResult.lastNode;
+                    nodeStart = current->next;
+                    length += parserResult.length - 2;
                 } else {
                     fprintf(stderr, "[ERROR][AST][c9528490b4c6] Unexpected token '('\n");
                     exit(1);
