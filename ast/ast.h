@@ -45,7 +45,7 @@ typedef struct {
 
 typedef struct {
     ASTNode* name;
-    int argumentsLength;
+    int argumentsCount;
     List* arguments;
 } FunctionCallValue;
 
@@ -80,8 +80,6 @@ typedef struct {
     char** BinomialExpressionType;
     char** UnaryExpressionType;
 } ASTModuleType;
-
-#define ReturnStatementValue ASTNode
 
 ASTModuleType AST;
 

@@ -73,7 +73,7 @@ void logASTNode(ASTNode* node, int padding) {
         logPadding(padding + 1);
         printf("Function: '%s'\n", declaration->name->value);
         logPadding(padding + 1);
-        printf("Arguments Length: %d\n", declaration->argumentsLength);
+        printf("Arguments Length: %d\n", declaration->argumentsCount);
         logPadding(padding + 1);
         printf("Arguments:\n");
 
@@ -146,7 +146,7 @@ void logASTNode(ASTNode* node, int padding) {
         logASTNode(declaration->name, padding + 2);
     }
     if(node->kind == AST_KIND_RETURN_STATEMENT) {
-        ReturnStatementValue* expression = node->value;
+        ASTNode* expression = node->value;
         logPadding(padding + 1);
         printf("Expression:\n");
         logASTNode(expression, padding + 2);
@@ -220,6 +220,9 @@ int main(int argc, char **argv) {
     }
 
     if(!options.dry) {
+        if(options.ast) {
+            printf("Runtime:\n");
+        }
         Runtime.run(ast);
     }
 

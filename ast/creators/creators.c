@@ -69,13 +69,13 @@ static ASTNode* createVariableDeclaration(ASTNode* identifier, AST_NODE_TYPE typ
     return node;
 }
 
-static ASTNode* createFunctionCall(ASTNode* name, int argumentsLength, List* arguments) {
+static ASTNode* createFunctionCall(ASTNode* name, int argumentsCount, List* arguments) {
     ASTNode* node = malloc(sizeof(ASTNode));
     node->kind = AST_KIND_FUNCTION_CALL;
 
     FunctionCallValue* declaration = malloc(sizeof(FunctionCallValue));
     declaration->name = name;
-    declaration->argumentsLength = argumentsLength;
+    declaration->argumentsCount = argumentsCount;
     declaration->arguments = arguments;
 
     node->value = declaration;

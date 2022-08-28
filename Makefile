@@ -8,7 +8,12 @@ SOURCES = main.c \
 			ast/parsers/parseExpression.c \
 			ast/parsers/parseStatements.c \
 		  HashTable/HashTable.c \
-		  runtime/runtime.c
+		  runtime/runtime.c \
+		  	runtime/native/native.c \
+			runtime/runners/runners.c \
+			runtime/runners/runNode.c \
+			runtime/runtime-utils/runtime-utils.c \
+		  Scopes/Scopes.c
 OBJECTS = $(SOURCES:.c=.o)
 
 EXECUTABLE = ./vlang

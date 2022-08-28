@@ -86,7 +86,7 @@ static List* map(List *list, void*(*mapper)(void* value, int index)) {
     return newList;
 }
 
-void forEach(
+static void forEach(
     List *list, 
     void (*callback)(void* value, int index)
 ) {
@@ -104,7 +104,7 @@ void forEach(
     }
 }
 
-void clear(List* list) {
+static void clear(List* list) {
     BOOL isFirst = list->prev == NULL;
     if(isFirst) {
         if(list->next) clear(list->next);
@@ -117,6 +117,16 @@ void clear(List* list) {
     }
 }
 
+static List* leftPush(List* list, void* value) {
+    ListNode* node = malloc(sizeof(ListNode));
+    node->value = value;
+    node->prev = NULL;
+    node->next = list;
+    list->prev = node;
+
+    return node;
+}
+
 LinkedListModuleType LinkedList = {
     pushItem,
     length,
@@ -124,5 +134,6 @@ LinkedListModuleType LinkedList = {
     map,
     createList,
     forEach,
-    clear
+    clear,
+    leftPush
 };

@@ -17,6 +17,8 @@ typedef struct {
     List* (*createList)();
     void (*forEach)(List* list, void (*callback)(void* value, int index));
     void (*clear)(List* list);
+    List* (*leftPush)(List* list, void* value);
+    List* (*shift)(List* list);
 } LinkedListModuleType;
 
 LinkedListModuleType LinkedList;

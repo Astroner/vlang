@@ -103,9 +103,11 @@ static void parseFunctionCall(List* tokens, int listLimit, BOOL semicolonAtTheEn
             bracketsDepth++;
         } else if(token->type == TOKEN_CLOSE_BRACKET) {
             if(bracketsDepth == 0) {
-                argumentsLength++;
-                LinkedList.pushItem(arguments, parseExpression(argStart, argumentTokenLength));
-                countable = FALSE;
+                if(argumentTokenLength > 0) {
+                    argumentsLength++;
+                    LinkedList.pushItem(arguments, parseExpression(argStart, argumentTokenLength));
+                    countable = FALSE;
+                }
                 break;
             } else {
                 bracketsDepth--;
@@ -284,7 +286,7 @@ static void parseFunctionDefinition(List* tokens, int listLimit, ParserResult* r
 }
 
 static void parseReturnStatement(List* tokens, int listLimit, ParserResult* result) {
-    ReturnStatementValue* value;
+    ASTNode* value;
 
     ListNode* current = tokens->next;
     if(current == NULL) {

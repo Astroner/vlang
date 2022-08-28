@@ -4,8 +4,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#define HASH_TABLE_SIZE 100
-
 static unsigned long hash(char *str) {
     unsigned long hash = 5381;
     int c;
@@ -87,5 +85,37 @@ static void* get(Table* table, char* name) {
     return NULL;
 }
 
+static void forEach(Table* table, void (*cb)(char* name, void* value)) {
+    for(int i = 0; i < HASH_TABLE_SIZE; i++) {
+        List* items = table->items[i];
+        if(items == NULL) continue;
 
-HashTableModuleType HashTable = { create, set, get };
+        ListNode* current = items;
+        while(1) {
+            TableItem* item = current->value;
+            cb(item->name, item->value);
+            if(!(current = current->next)) break;
+        }
+    }
+};
+
+static void clear(Table* table) {
+    for(int i = 0; i < HASH_TABLE_SIZE; i++) {
+        List* items = table->items[i];
+        if(items == NULL) continue;
+
+        ListNode* current = items;
+        while(1) {
+            ListNode* next = current->next;
+            TableItem* item = current->value;
+
+            free(item);
+            free(current);
+
+            if(!(current = next)) break;
+        }
+        table->items[i] = NULL;
+    }
+}
+
+HashTableModuleType HashTable = { create, set, get, forEach, clear };
