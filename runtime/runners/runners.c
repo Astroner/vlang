@@ -25,7 +25,7 @@ static void runVariableDeclaration(VariableDeclarationValue* variable, RuntimeCo
         exit(1);
     }
 
-    Scopes.addItem(ctx->scope, variable->name->value, declaration);
+    Scopes.setItem(ctx->scope, variable->name->value, declaration);
 }
 
 static void clearDeclaration(char* key, void* value) {
@@ -58,31 +58,33 @@ static Declaration* runFunctionCall(FunctionCallValue* call, RuntimeContext* ctx
 
     Scopes.addTable(ctx->scope, HashTable.create());
 
-    ListNode* currentArgument = definition->arguments;
-    ListNode* currentExpression = call->arguments;
-    while(1) {
-        ASTNode* argument = currentArgument->value;
-        FunctionArgumentValue* argumentDeclaration = argument->value;
-        ASTNode* expression = currentExpression->value;
+    if(definition->argumentsCount > 0) {
+        ListNode* currentArgument = definition->arguments;
+        ListNode* currentExpression = call->arguments;
+        while(1) {
+            ASTNode* argument = currentArgument->value;
+            FunctionArgumentValue* argumentDeclaration = argument->value;
+            ASTNode* expression = currentExpression->value;
 
-        Declaration* declaration = runNode(expression, ctx);
-        if(declaration->type != argumentDeclaration->type) {
-            fprintf(
-                stderr, 
-                "[ERROR][RUNTIME][71h31kgh28geb] Type '%s' does not match type '%s' of argument '%s' for function '%s'\n", 
-                AST.NodeType[declaration->type],
-                AST.NodeType[argumentDeclaration->type],
-                argumentDeclaration->name->value,
-                call->name->value
-            );
-            exit(1);
-        }
+            Declaration* declaration = runNode(expression, ctx);
+            if(declaration->type != argumentDeclaration->type) {
+                fprintf(
+                    stderr, 
+                    "[ERROR][RUNTIME][71h31kgh28geb] Type '%s' does not match type '%s' of argument '%s' for function '%s'\n", 
+                    AST.NodeType[declaration->type],
+                    AST.NodeType[argumentDeclaration->type],
+                    argumentDeclaration->name->value,
+                    call->name->value
+                );
+                exit(1);
+            }
 
-        Scopes.addItem(ctx->scope, argumentDeclaration->name->value, declaration);
+            Scopes.setItem(ctx->scope, argumentDeclaration->name->value, declaration);
 
-        currentExpression = currentExpression->next;
-        if(!(currentArgument = currentArgument->next)) {
-            break;
+            currentExpression = currentExpression->next;
+            if(!(currentArgument = currentArgument->next)) {
+                break;
+            }
         }
     }
 
@@ -205,10 +207,39 @@ static void runFunctionDefinition(FunctionDefinitionValue* definition, RuntimeCo
     HashTable.set(ctx->functions, definition->name->value, definition);
 }
 
+void runVariableAssignment(VariableAssignmentValue* assignment, RuntimeContext* ctx) {
+    Declaration* declaration = Scopes.getItem(ctx->scope, assignment->name->value);
+
+    if(declaration == NULL) {
+        fprintf(stderr, "[ERROR][RUNTIME][032994726d7n9] Variable '%s' is not defined\n", assignment->name->value);
+        exit(1);
+    }
+
+    Declaration* nextDeclaration = runNode(assignment->value, ctx);
+
+    if(nextDeclaration->type != declaration->type) {
+        fprintf(
+            stderr, 
+            "[ERROR][RUNTIME][032909726d7n9] Cannot assign type '%s' to type '%s' for variable '%s'\n",
+            AST.NodeType[nextDeclaration->type],
+            AST.NodeType[declaration->type],
+            assignment->name->value
+        );
+        exit(1);
+    }
+
+    RuntimeUtils.freeDeclarationValue(declaration);
+
+    declaration->value = nextDeclaration->value;
+
+    free(nextDeclaration);
+}
+
 RunnersModule Runners = {
     runVariableDeclaration,
     runFunctionCall,
     runUnaryExpression,
     runBinomialExpression,
-    runFunctionDefinition
+    runFunctionDefinition,
+    runVariableAssignment
 };

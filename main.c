@@ -73,10 +73,12 @@ void logASTNode(ASTNode* node, int padding) {
         logPadding(padding + 1);
         printf("Function: '%s'\n", declaration->name->value);
         logPadding(padding + 1);
-        printf("Arguments Length: %d\n", declaration->argumentsCount);
+        printf("Arguments Count: %d\n", declaration->argumentsCount);
+
+        if(declaration->argumentsCount == 0) return;
+
         logPadding(padding + 1);
         printf("Arguments:\n");
-
         ListNode* current = declaration->arguments;
         while(1) {
             ASTNode* node = current->value;
@@ -115,19 +117,25 @@ void logASTNode(ASTNode* node, int padding) {
     }
     if(node->kind == AST_KIND_FUNCTION_DEFINITION) {
         FunctionDefinitionValue* declaration = node->value;
+
         logPadding(padding + 1);
         printf("Return Type: %s\n", AST.NodeType[declaration->returnType]);
+
         logPadding(padding + 1);
         printf("Arguments Count: %d\n", declaration->argumentsCount);
-        logPadding(padding + 1);
-        printf("Arguments:\n");
+
         ListNode* current = declaration->arguments;
         ASTNode* node;
-        while(1) {
-            node = current->value;
-            logASTNode(node, padding + 2);
-            if(!(current = current->next)) break;
+        if(declaration->argumentsCount > 0) {
+            logPadding(padding + 1);
+            printf("Arguments:\n");
+            while(1) {
+                node = current->value;
+                logASTNode(node, padding + 2);
+                if(!(current = current->next)) break;
+            }
         }
+
         logPadding(padding + 1);
         printf("Statements:\n");
         current = declaration->statements;

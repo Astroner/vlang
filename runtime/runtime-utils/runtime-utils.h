@@ -7,6 +7,7 @@ typedef struct {
     Declaration* (*createDeclaration)(AST_NODE_TYPE type, void* value);
     Declaration* (*deepCopyDeclaration)(Declaration* src);
     void (*freeDeclaration)(Declaration* declaration);
+    void (*freeDeclarationValue)(Declaration* declaration);
 } RuntimeUtilsModule;
 
 RuntimeUtilsModule RuntimeUtils;

@@ -9,6 +9,7 @@ typedef struct {
     Declaration* (*runUnaryExpression)(UnaryExpressionValue* expression, RuntimeContext* ctx);
     Declaration* (*runBinomialExpression)(BinomialExpressionValue* expression, RuntimeContext* ctx);
     void (*runFunctionDefinition)(FunctionDefinitionValue* definition, RuntimeContext* ctx);
+    void (*runVariableAssignment)(VariableAssignmentValue* assignment, RuntimeContext* ctx);
 } RunnersModule;
 
 RunnersModule Runners;

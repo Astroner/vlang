@@ -28,9 +28,16 @@ static void freeDeclaration(Declaration* declaration) {
     free(declaration);
 }
 
+static void freeDeclarationValue(Declaration* declaration) {
+    if(declaration->type == AST_NODE_TYPE_NUMBER) {
+        free(((int*)declaration->value));
+    }
+}
+
 RuntimeUtilsModule RuntimeUtils = {
     createDeclaration,
     deepCopyDeclaration,
     freeDeclaration,
+    freeDeclarationValue
 };
 

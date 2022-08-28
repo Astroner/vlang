@@ -25,7 +25,7 @@ static void addGlobalItem(Scope* scope, char* key, void* value) {
     HashTable.set(scope->global, key, value);
 }
 
-static void addItem(Scope* scope, char* key, void* value) {
+static void setItem(Scope* scope, char* key, void* value) {
     HashTable.set(scope->tables->value, key, value);
 }
 
@@ -66,7 +66,7 @@ ScopesModule Scopes = {
     createScope,
     addTable,
     addGlobalItem,
-    addItem,
+    setItem,
     getItem,
     shiftTable,
 };

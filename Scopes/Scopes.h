@@ -13,7 +13,7 @@ typedef struct {
     Scope* (*createScope)(Table* global);
     void (*addTable)(Scope* scope, Table* table);
     void (*addGlobalItem)(Scope* scope, char* key, void* value);
-    void (*addItem)(Scope* scope, char* key, void* value);
+    void (*setItem)(Scope* scope, char* key, void* value);
     void* (*getItem)(Scope* scope, char* key);
     Table* (*shiftTable)(Scope* scope);
 } ScopesModule;

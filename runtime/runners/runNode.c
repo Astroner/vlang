@@ -38,6 +38,9 @@ Declaration* runNode(ASTNode* node, RuntimeContext* ctx) {
         case AST_KIND_FUNCTION_DEFINITION:
             Runners.runFunctionDefinition(node->value, ctx);
             break;
+        case AST_KIND_VARIABLE_ASSIGNMENT:
+            Runners.runVariableAssignment(node->value, ctx);
+            break;
         default:
             break;
     }

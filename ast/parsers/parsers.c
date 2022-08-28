@@ -214,7 +214,6 @@ static void parseFunctionDefinition(List* tokens, int listLimit, ParserResult* r
     ListNode* currentArgumentStart = current;
     Token* token;
     while(1) {
-        argumentsTokenLength++;
         token = current->value;
         if(token->type == TOKEN_COMMA) {
             LinkedList.pushItem(
@@ -228,6 +227,7 @@ static void parseFunctionDefinition(List* tokens, int listLimit, ParserResult* r
             currentArgumentStart = current->next;
             argumentsCount++;
         } else if(token->type == TOKEN_CLOSE_BRACKET) {
+            if(argumentsTokenLength == 0) break;
             LinkedList.pushItem(
                 arguments,
                 parseFunctionArgument(
@@ -241,6 +241,7 @@ static void parseFunctionDefinition(List* tokens, int listLimit, ParserResult* r
             currentArgumentLength++;
         }        
 
+        argumentsTokenLength++;
         if(!(current = current->next)) {
             fprintf(stderr, "[ERROR][AST][d81a0630e127] Expected end of arguments ')'\n");
             exit(1);
