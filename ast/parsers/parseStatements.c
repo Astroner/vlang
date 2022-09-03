@@ -49,7 +49,6 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInsideFun
                 if(guess == GUESS_TYPE_BLANK) {
                     guess = GUESS_TYPE_FUNCTION_CALL | GUESS_TYPE_VARIABLE_ASSIGNMENT;
                 } else if(!guessIncludes(guess, GUESS_TYPE_FUNCTION_DEFINITION | GUESS_TYPE_VARIABLE_DEFINITION)) {
-                    printf("%d\n", guess);
                     fprintf(stderr, "[ERROR][AST][531840349f39] Unexpected identifier '%s'\n", token->value);
                     exit(1);
                 }

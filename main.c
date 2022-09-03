@@ -228,6 +228,11 @@ int main(int argc, char **argv) {
         printf("\n\n");
     }
 
+    // check for empty file
+    if(tokens->value == NULL) {
+        return 0;
+    }
+
     List* ast = AST.createASTFromTokens(tokens);
 
     if(options.ast) {
