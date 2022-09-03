@@ -41,6 +41,7 @@ static ASTNode* parseTokenExpression(
         
         switch(token->type) {
             case TOKEN_IDENTIFIER:
+            case TOKEN_BOOLEAN_LITERAL:
             case TOKEN_NUMBER_LITERAL: {
                 ASTNode* subject;
                 if(token->type == TOKEN_IDENTIFIER) {
@@ -57,8 +58,10 @@ static ASTNode* parseTokenExpression(
                     } else {
                         subject = Creators.createIdentifier(token->value);
                     }
-                } else {
+                } else if(token->type == TOKEN_NUMBER_LITERAL) {
                     subject = Creators.createNumberLiteral(token->value);
+                } else {
+                    subject = Creators.createBooleanLiteral(token->value);
                 }
                 if(unaryExpressionType != AST_UNARY_EXPRESSION_TYPE_BLANK) {
                     subject = Creators.createUnaryExpression(

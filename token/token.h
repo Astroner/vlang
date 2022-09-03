@@ -19,9 +19,14 @@
 #define TOKEN_OPEN_CURLY_BRACKET 13
 #define TOKEN_CLOSE_CURLY_BRACKET 14
 #define TOKEN_RETURN_KEYWORD 15
+#define TOKEN_BOOLEAN_KEYWORD 16
+#define TOKEN_BOOLEAN_LITERAL 17
 
 #define NUMBER_KEYWORD "number"
 #define RETURN_KEYWORD "return"
+#define BOOLEAN_KEYWORD "boolean"
+#define BOOLEAN_TRUE "true"
+#define BOOLEAN_FALSE "false"
 
 // returns stringified token type from dict
 #define t2s(token) TokenModule.TokenType[token->type]

@@ -134,6 +134,15 @@ ASTNode* createVariableAssignment(ASTNode* name, ASTNode* value) {
     return node;
 }
 
+static ASTNode* createBooleanLiteral(int* value) {
+    ASTNode* literal = malloc(sizeof(ASTNode));
+
+    literal->kind = AST_KIND_BOOLEAN_LITERAL;
+    literal->value = value;
+
+    return literal;
+}
+
 CreatorsType Creators = {
     createVariableDeclaration,
     createIdentifier,
@@ -144,5 +153,6 @@ CreatorsType Creators = {
     createFunctionDefinition,
     createFunctionArgument,
     createReturnStatement,
-    createVariableAssignment
+    createVariableAssignment,
+    createBooleanLiteral
 };

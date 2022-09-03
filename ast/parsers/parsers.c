@@ -20,6 +20,8 @@ static void parseVariableDefinition(List* tokens, int listLimit, ParserResult* r
 
     if(typeToken->type == TOKEN_NUMBER_KEYWORD) {
         variableType = AST_NODE_TYPE_NUMBER;
+    } else if(typeToken->type == TOKEN_BOOLEAN_KEYWORD) {
+        variableType = AST_NODE_TYPE_BOOLEAN;
     } else {
         fprintf(stderr, "[ERROR][AST][1a41c4f5d539] Unexpected token as type '%s'\n", t2s(typeToken));
         exit(1);

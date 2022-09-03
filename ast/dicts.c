@@ -9,12 +9,14 @@ static char* NodeKind[] = {
     "AST_KIND_FUNCTION_DEFINITION",
     "AST_KIND_FUNCTION_ARGUMENT",
     "AST_KIND_RETURN_STATEMENT",
-    "AST_KIND_VARIABLE_ASSIGNMENT"
+    "AST_KIND_VARIABLE_ASSIGNMENT",
+    "AST_KIND_BOOLEAN_LITERAL"
 };
 
 static char* NodeType[] = {
     "AST_NODE_TYPE_BLANK",
-    "AST_NODE_TYPE_NUMBER"
+    "AST_NODE_TYPE_NUMBER",
+    "AST_NODE_TYPE_BOOLEAN"
 };
 
 static char* BinomialExpressionType[] = {

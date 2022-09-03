@@ -36,11 +36,12 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInsideFun
     while(1) {
         Token* token = current->value;
         switch(token->type) {
+            case TOKEN_BOOLEAN_KEYWORD:
             case TOKEN_NUMBER_KEYWORD: {
                 if(guess == GUESS_TYPE_BLANK) {
                     guess = GUESS_TYPE_FUNCTION_DEFINITION | GUESS_TYPE_VARIABLE_DEFINITION;
                 } else {
-                    fprintf(stderr, "[ERROR][AST][3b19eecf0793] Unexpected usage of 'number' keyword\n");
+                    fprintf(stderr, "[ERROR][AST][3b19eecf0793] Unexpected type keyword\n");
                     exit(1);
                 }
                 break;

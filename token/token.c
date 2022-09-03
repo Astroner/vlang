@@ -22,6 +22,8 @@ static char* TokenType[] = {
     "TOKEN_OPEN_CURLY_BRACKET",
     "TOKEN_CLOSE_CURLY_BRACKET",
     "TOKEN_RETURN_KEYWORD",
+    "TOKEN_BOOLEAN_KEYWORD",
+    "TOKEN_BOOLEAN_LITERAL",
 };
 
 static Token* createToken(TOKEN_TYPE type, void* value) {
@@ -91,14 +93,30 @@ Token* tokenFromString(char* str) {
     } else {
         int tryInt = atoi(str);
         if(strcmp(str, NUMBER_KEYWORD) == 0) {
-            token = createToken(TOKEN_NUMBER_KEYWORD, 0);
-        } else if(strcmp(str, RETURN_KEYWORD) == 0) {
-            token = createToken(TOKEN_RETURN_KEYWORD, 0);
-        }else if(tryInt) {
+            token = createToken(TOKEN_NUMBER_KEYWORD, NULL);
+        } 
+        else if(strcmp(str, RETURN_KEYWORD) == 0) {
+            token = createToken(TOKEN_RETURN_KEYWORD, NULL);
+        } 
+        else if(strcmp(str, BOOLEAN_KEYWORD) == 0) {
+            token = createToken(TOKEN_BOOLEAN_KEYWORD, NULL);
+        } 
+        else if(strcmp(str, BOOLEAN_TRUE) == 0) {
+            int* valueTrue = malloc(sizeof(int));
+            *valueTrue = 1;
+            token = createToken(TOKEN_BOOLEAN_LITERAL, valueTrue);
+        } 
+        else if(strcmp(str, BOOLEAN_FALSE) == 0) {
+            int* valueFalse = malloc(sizeof(int));
+            *valueFalse = 0;
+            token = createToken(TOKEN_BOOLEAN_LITERAL, valueFalse);
+        } 
+        else if(tryInt) {
             int* entity = malloc(sizeof(int));
             *entity = tryInt;
             token = createToken(TOKEN_NUMBER_LITERAL, entity);
-        } else {
+        } 
+        else {
             token = createToken(TOKEN_IDENTIFIER, str);
         }
     }

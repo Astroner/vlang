@@ -13,7 +13,8 @@ SOURCES = main.c \
 			runtime/runners/runners.c \
 			runtime/runners/runNode.c \
 			runtime/runtime-utils/runtime-utils.c \
-		  Scopes/Scopes.c
+		  Scopes/Scopes.c \
+		  loggers/loggers.c
 OBJECTS = $(SOURCES:.c=.o)
 
 EXECUTABLE = ./vlang
