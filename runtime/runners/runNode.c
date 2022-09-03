@@ -1,6 +1,7 @@
 #include "runNode.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "runners.h"
@@ -21,10 +22,18 @@ Declaration* runNode(ASTNode* node, RuntimeContext* ctx) {
             if(declaration == NULL) return NULL;
             return RuntimeUtils.deepCopyDeclaration(declaration);
         }
+        case AST_KIND_BOOLEAN_LITERAL:
         case AST_KIND_NUMBER_LITERAL: {
             Declaration* declaration = malloc(sizeof(Declaration));
-            declaration->type = AST_NODE_TYPE_NUMBER;
-            declaration->value = malloc(sizeof(RUNTIME_DATA_TYPE_BINDING_NUMBER));
+
+            if(node->kind == AST_KIND_NUMBER_LITERAL) {
+                declaration->type = AST_NODE_TYPE_NUMBER;
+                declaration->value = malloc(sizeof(RUNTIME_DATA_TYPE_BINDING_NUMBER));
+            } else {
+                declaration->type = AST_NODE_TYPE_BOOLEAN;
+                declaration->value = malloc(sizeof(RUNTIME_DATA_TYPE_BINDING_BOOLEAN));
+            }
+
             memcpy(
                 declaration->value,
                 node->value,
@@ -42,6 +51,8 @@ Declaration* runNode(ASTNode* node, RuntimeContext* ctx) {
             Runners.runVariableAssignment(node->value, ctx);
             break;
         default:
+            fprintf(stderr, "[ERROR][RUNTIME][95b789dec5eb] Cannot execute node '%s'\n", AST.NodeKind[node->kind]);
+            exit(1);
             break;
     }
 

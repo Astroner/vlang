@@ -1,10 +1,11 @@
+#include "main.h"
+
 #include<stdio.h>
 #include<stdlib.h>
 
 #include "linkedList/linkedList.h"
 #include "utils/utils.h"
 #include "token/token.h"
-#include "main.h"
 #include "ast/ast.h"
 #include "runtime/runtime.h"
 #include "loggers/loggers.h"

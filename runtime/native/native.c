@@ -10,6 +10,12 @@
 static void printDeclaration(Declaration* declaration) {
     if(declaration->type == AST_NODE_TYPE_NUMBER) {
         printf("%d", *((int*)declaration->value));
+    } else if(declaration->type == AST_NODE_TYPE_BOOLEAN) {
+        if(*((int*)declaration->value) == 1) {
+            printf("true");
+        } else {
+            printf("false");
+        }
     } else {
         printf("CANNOT_LOG");
     }

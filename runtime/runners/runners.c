@@ -159,10 +159,18 @@ static Declaration* runBinomialExpression(BinomialExpressionValue* expression, R
     if(first->type != second->type) {
         fprintf(
             stderr, 
-            "[ERROR][RUNTIME][ff83e3b4de52] Cannot perform operation between type '%s' and type '%s'\n", 
+            "[ERROR][RUNTIME][ff83e3b4de52] Cannot perform binomial operation between type '%s' and type '%s'\n", 
             AST.NodeType[first->type], 
             AST.NodeType[second->type]
         );
+        exit(1);
+    }
+    if(first->type == AST_NODE_TYPE_BOOLEAN) {
+        fprintf(
+            stderr, 
+            "[ERROR][RUNTIME][ba120fe039b9] Cannot perform binomial operation with boolean type\n"
+        );
+        exit(1);
     }
 
     result->type = first->type;
