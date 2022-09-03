@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "../runtime-utils/runtime-utils.h"
 #include "../runners/runNode.h"
@@ -34,6 +35,46 @@ static void log(FunctionCallValue* call, RuntimeContext* ctx) {
     printf("\n");
 }
 
+BOOL isRandomInitialized = FALSE;
+
+int randomNumber(FunctionCallValue* call, RuntimeContext* ctx) {
+    if(call->argumentsCount != 2) {
+        fprintf(stderr, "[ERROR][RUNTIME][fddd95a60755] randomNumber() requires 2 arguments, but got %d\n", call->argumentsCount);
+        exit(1);
+    }
+    Declaration* min = runNode(call->arguments->value, ctx);
+    Declaration* max = runNode(call->arguments->next->value, ctx);
+
+    if(min->type != AST_NODE_TYPE_NUMBER || max->type != AST_NODE_TYPE_NUMBER) {
+        fprintf(stderr, "[ERROR][RUNTIME][917523199130] min and max for randomNumber() must be of type number %d\n", call->argumentsCount);
+        exit(1);
+    }
+
+    if(!isRandomInitialized) {
+        isRandomInitialized = TRUE;
+        srand(time(NULL));
+    }
+
+
+    int value = (
+        (
+            rand() % (
+                *((int*)max->value) 
+                - 
+                *((int*)min->value) + 1
+            )
+        ) 
+        + 
+        *((int*)min->value)
+    );
+
+    RuntimeUtils.freeDeclaration(min);
+    RuntimeUtils.freeDeclaration(max);
+
+    return value;
+}
+
 NativeModule Native = {
     log,
+    randomNumber,
 };

@@ -16,6 +16,7 @@ typedef struct {
     void (*setItem)(Scope* scope, char* key, void* value);
     void* (*getItem)(Scope* scope, char* key);
     Table* (*shiftTable)(Scope* scope);
+    BOOL (*hasItemInCurrentTable)(Scope* scope, char* name);
 } ScopesModule;
 
 ScopesModule Scopes;

@@ -6,6 +6,7 @@
 
 typedef struct {
     void (*log)(FunctionCallValue* call, RuntimeContext* ctx);
+    int (*randomNumber)(FunctionCallValue* call, RuntimeContext* ctx);
 } NativeModule;
 
 NativeModule Native;

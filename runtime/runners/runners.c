@@ -12,13 +12,13 @@
 
 
 static void runVariableDeclaration(VariableDeclarationValue* variable, RuntimeContext* ctx) {
-    Declaration* declaration = Scopes.getItem(ctx->scope, variable->name->value);
-    if(declaration != NULL) {
+    BOOL isDeclared = Scopes.hasItemInCurrentTable(ctx->scope, variable->name->value);
+    if(isDeclared) {
         fprintf(stderr, "[ERROR][RUNTIME][b9c3a7e5f23e] Variable '%s' already declared\n", variable->name->value);
         exit(1);
     }
 
-    declaration = runNode(variable->value, ctx);
+    Declaration* declaration = runNode(variable->value, ctx);
 
     if(declaration->type != variable->type) {
         fprintf(stderr, "[ERROR][RUNTIME][77d1d3121deb] cannot assign type '%s' to type '%s'\n", AST.NodeType[declaration->type], AST.NodeType[variable->type]);
@@ -38,6 +38,11 @@ static Declaration* runFunctionCall(FunctionCallValue* call, RuntimeContext* ctx
         Native.log(call, ctx);
         return RuntimeUtils.createDeclaration(AST_NODE_TYPE_BLANK, NULL);
     }
+    if(strcmp(call->name->value, "randomNumber") == 0) {
+        int* randInt = malloc(sizeof(int));
+        *randInt = Native.randomNumber(call, ctx);
+        return RuntimeUtils.createDeclaration(AST_NODE_TYPE_NUMBER, randInt);
+    }
 
     FunctionDefinitionValue* definition = HashTable.get(ctx->functions, call->name->value);
 
@@ -55,8 +60,14 @@ static Declaration* runFunctionCall(FunctionCallValue* call, RuntimeContext* ctx
         fprintf(stderr, "[ERROR][RUNTIME][71h31kgh21deb] Too much arguments to call function '%s'\n", call->name->value);
         exit(1);
     }
+    
+    Scope* functionScope = Scopes.createScope(ctx->scope->global);
+    Scopes.addTable(functionScope, HashTable.create());
 
-    Scopes.addTable(ctx->scope, HashTable.create());
+    RuntimeContext functionContext = {
+        functionScope,
+        ctx->functions
+    };
 
     if(definition->argumentsCount > 0) {
         ListNode* currentArgument = definition->arguments;
@@ -79,7 +90,7 @@ static Declaration* runFunctionCall(FunctionCallValue* call, RuntimeContext* ctx
                 exit(1);
             }
 
-            Scopes.setItem(ctx->scope, argumentDeclaration->name->value, declaration);
+            Scopes.setItem(functionScope, argumentDeclaration->name->value, declaration);
 
             currentExpression = currentExpression->next;
             if(!(currentArgument = currentArgument->next)) {
@@ -94,10 +105,10 @@ static Declaration* runFunctionCall(FunctionCallValue* call, RuntimeContext* ctx
         ASTNode* statement = current->value;
         if(statement->kind == AST_KIND_RETURN_STATEMENT) {
             ASTNode* returnStatementExpression = statement->value;
-            returnValue = runNode(returnStatementExpression, ctx);
+            returnValue = runNode(returnStatementExpression, &functionContext);
             break;
         } else {
-            runNode(statement, ctx);
+            runNode(statement, &functionContext);
         }
 
         if(!(current = current->next)) {
@@ -110,10 +121,18 @@ static Declaration* runFunctionCall(FunctionCallValue* call, RuntimeContext* ctx
         exit(1);
     }
 
-    Table* functionScope = Scopes.shiftTable(ctx->scope);
+    Table* variablesTable = Scopes.shiftTable(functionScope);
 
-    HashTable.forEach(functionScope, clearDeclaration);
-    HashTable.clear(functionScope);
+    HashTable.forEach(variablesTable, clearDeclaration);
+    HashTable.clear(variablesTable);
+
+    if(functionScope->tables->next) {
+        fprintf(stderr, "[ERROR][RUNTIME][125eb3c21bb7] Function scope is not clear. [%s]\n", call->name->value);
+        exit(1);
+    }
+
+    free(functionScope->tables);
+    free(functionScope);
 
     return returnValue;
 }

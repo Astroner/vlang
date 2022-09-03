@@ -62,6 +62,11 @@ static Table* shiftTable(Scope* scope) {
     return value;
 }
 
+static BOOL hasItemInCurrentTable(Scope* scope, char* name) {
+    if(HashTable.get(scope->tables->value, name) == NULL) return FALSE;
+    return TRUE;
+}
+
 ScopesModule Scopes = {
     createScope,
     addTable,
@@ -69,4 +74,5 @@ ScopesModule Scopes = {
     setItem,
     getItem,
     shiftTable,
+    hasItemInCurrentTable
 };
