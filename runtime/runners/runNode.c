@@ -28,16 +28,16 @@ Declaration* runNode(ASTNode* node, RuntimeContext* ctx) {
 
             if(node->kind == AST_KIND_NUMBER_LITERAL) {
                 declaration->type = AST_NODE_TYPE_NUMBER;
-                declaration->value = malloc(sizeof(RUNTIME_DATA_TYPE_BINDING_NUMBER));
+                declaration->value = malloc(sizeof(int));
             } else {
                 declaration->type = AST_NODE_TYPE_BOOLEAN;
-                declaration->value = malloc(sizeof(RUNTIME_DATA_TYPE_BINDING_BOOLEAN));
+                declaration->value = malloc(sizeof(int));
             }
 
             memcpy(
                 declaration->value,
                 node->value,
-                sizeof(RUNTIME_DATA_TYPE_BINDING_NUMBER)
+                sizeof(int)
             );
 
             return declaration;

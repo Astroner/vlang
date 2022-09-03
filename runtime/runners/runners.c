@@ -145,9 +145,31 @@ static Declaration* runUnaryExpression(UnaryExpressionValue* expression, Runtime
         exit(1);
     }
 
-    *((RUNTIME_DATA_TYPE_BINDING_NUMBER*)declaration->value) = - *((RUNTIME_DATA_TYPE_BINDING_NUMBER*)declaration->value);
+    *((int*)declaration->value) = - *((int*)declaration->value);
 
     return declaration;
+}
+
+static void initiateBinomialOperationResult(Declaration* declaration, AST_NODE_TYPE operandsType, AST_BINOMIAL_EXPRESSION_TYPE operationType){
+    switch(operationType) {
+        case AST_BINOMIAL_EXPRESSION_TYPE_AND:
+        case AST_BINOMIAL_EXPRESSION_TYPE_OR:
+        case AST_BINOMIAL_EXPRESSION_TYPE_EQUAL:
+        case AST_BINOMIAL_EXPRESSION_TYPE_NOT_EQUAL:
+        case AST_BINOMIAL_EXPRESSION_TYPE_GREATER:
+        case AST_BINOMIAL_EXPRESSION_TYPE_GREATER_OR_EQUAL:
+        case AST_BINOMIAL_EXPRESSION_TYPE_LESS:
+        case AST_BINOMIAL_EXPRESSION_TYPE_LESS_OR_EQUAL: {
+            declaration->type = AST_NODE_TYPE_BOOLEAN;
+            declaration->value = malloc(typeSize(AST_NODE_TYPE_BOOLEAN));
+            break;
+        }
+        default: {
+            declaration->type = operandsType;
+            declaration->value = malloc(typeSize(operandsType));
+            break;
+        }
+    }
 }
 
 static Declaration* runBinomialExpression(BinomialExpressionValue* expression, RuntimeContext* ctx) {
@@ -165,43 +187,73 @@ static Declaration* runBinomialExpression(BinomialExpressionValue* expression, R
         );
         exit(1);
     }
-    if(first->type == AST_NODE_TYPE_BOOLEAN) {
-        fprintf(
-            stderr, 
-            "[ERROR][RUNTIME][ba120fe039b9] Cannot perform binomial operation with boolean type\n"
-        );
-        exit(1);
-    }
 
-    result->type = first->type;
-    result->value = malloc(typeSize(first->type));
+    initiateBinomialOperationResult(result, first->type, expression->type);
 
-    switch(result->type) {
+    switch(first->type) {
         case AST_NODE_TYPE_NUMBER: {
-            RUNTIME_DATA_TYPE_BINDING_NUMBER x = *((RUNTIME_DATA_TYPE_BINDING_NUMBER*)first->value);
-            RUNTIME_DATA_TYPE_BINDING_NUMBER y = *((RUNTIME_DATA_TYPE_BINDING_NUMBER*)second->value);
-            RUNTIME_DATA_TYPE_BINDING_NUMBER* z = result->value;
+            int x = *((int*)first->value);
+            int y = *((int*)second->value);
 
             switch(expression->type) {
                 case AST_BINOMIAL_EXPRESSION_TYPE_SUM:
-                    *z = x + y;
+                    *((int*)result->value) = x + y;
                     break;
                 case AST_BINOMIAL_EXPRESSION_TYPE_DIVISION:
-                    *z = x / y;
+                    *((int*)result->value) = x / y;
                     break;
                 case AST_BINOMIAL_EXPRESSION_TYPE_MULTIPLICATION:
-                    *z = x * y;
+                    *((int*)result->value) = x * y;
                     break;
                 case AST_BINOMIAL_EXPRESSION_TYPE_SUBTRACTION:
-                    *z = x - y;
+                    *((int*)result->value) = x - y;
                     break;
                 case AST_BINOMIAL_EXPRESSION_TYPE_POWER:
-                    *z = pow(x, y);
+                    *((int*)result->value) = pow(x, y);
+                    break;
+                case AST_BINOMIAL_EXPRESSION_TYPE_EQUAL:
+                    *((int*)result->value) = x == y;
+                    break;
+                case AST_BINOMIAL_EXPRESSION_TYPE_NOT_EQUAL:
+                    *((int*)result->value) = x != y;
+                    break;
+                case AST_BINOMIAL_EXPRESSION_TYPE_GREATER:
+                    *((int*)result->value) = x > y;
+                    break;
+                case AST_BINOMIAL_EXPRESSION_TYPE_GREATER_OR_EQUAL:
+                    *((int*)result->value) = x >= y;
+                    break;
+                case AST_BINOMIAL_EXPRESSION_TYPE_LESS:
+                    *((int*)result->value) = x > y;
+                    break;
+                case AST_BINOMIAL_EXPRESSION_TYPE_LESS_OR_EQUAL:
+                    *((int*)result->value) = x >= y;
                     break;
                 default:
                     fprintf(
                         stderr, 
-                        "[ERROR][RUNTIME][0101d0b066ba] Unknown Operation '%s'\n", 
+                        "[ERROR][RUNTIME][0101d0b066ba] Cannot perform operation '%s' with numbers\n", 
+                        AST.BinomialExpressionType[expression->type]
+                    );
+                    exit(1);
+            }
+            break;
+        }
+        case AST_NODE_TYPE_BOOLEAN: {
+            int x = *((int*)first->value);
+            int y = *((int*)second->value);
+            
+            switch(expression->type) {
+                case AST_BINOMIAL_EXPRESSION_TYPE_OR:
+                    *((int*)result->value) = x || y;
+                    break;
+                case AST_BINOMIAL_EXPRESSION_TYPE_AND:
+                    *((int*)result->value) = x && y;
+                    break;
+                default:
+                    fprintf(
+                        stderr, 
+                        "[ERROR][RUNTIME][9b567eaa0188] Cannot perform operation '%s' with booleans\n", 
                         AST.BinomialExpressionType[expression->type]
                     );
                     exit(1);
