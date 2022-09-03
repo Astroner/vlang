@@ -1,6 +1,8 @@
 #if !defined(TOKENS_H)
 #define TOKENS_H
 
+#include "../linkedList/linkedList.h"
+
 #define TOKEN_TYPE char
 #define TOKEN_BLANK -1
 #define TOKEN_IDENTIFIER 0
@@ -21,12 +23,27 @@
 #define TOKEN_RETURN_KEYWORD 15
 #define TOKEN_BOOLEAN_KEYWORD 16
 #define TOKEN_BOOLEAN_LITERAL 17
+#define TOKEN_IF_KEYWORD 18
+#define TOKEN_ELSE_KEYWORD 19
+#define TOKEN_PIPE 20
+#define TOKEN_AMPERSAND 21
+#define TOKEN_DOUBLE_PIPE 22
+#define TOKEN_DOUBLE_AMPERSAND 23
+#define TOKEN_EXCLAMATION 24
+#define TOKEN_GREATER 25
+#define TOKEN_LESS 26
+#define TOKEN_NOT_EQUAL 27
+#define TOKEN_GREATER_OR_EQUAL 28
+#define TOKEN_LESS_OR_EQUAL 29
+#define TOKEN_DOUBLE_EQUAL 30
 
 #define NUMBER_KEYWORD "number"
 #define RETURN_KEYWORD "return"
 #define BOOLEAN_KEYWORD "boolean"
 #define BOOLEAN_TRUE "true"
 #define BOOLEAN_FALSE "false"
+#define IF_KEYWORD "if"
+#define ELSE_KEYWORD "else"
 
 // returns stringified token type from dict
 #define t2s(token) TokenModule.TokenType[token->type]
@@ -38,7 +55,7 @@ typedef struct {
 
 typedef struct {
     char** TokenType;
-    Token* (*tokenFromString)(char* str);
+    Token* (*parseToken)(char* str, Token* prevToken);
 } TokenModuleType;
 
 TokenModuleType TokenModule;

@@ -24,6 +24,19 @@ static char* TokenType[] = {
     "TOKEN_RETURN_KEYWORD",
     "TOKEN_BOOLEAN_KEYWORD",
     "TOKEN_BOOLEAN_LITERAL",
+    "TOKEN_IF_KEYWORD",
+    "TOKEN_ELSE_KEYWORD",
+    "TOKEN_PIPE",
+    "TOKEN_AMPERSAND",
+    "TOKEN_DOUBLE_PIPE",
+    "TOKEN_DOUBLE_AMPERSAND",
+    "TOKEN_EXCLAMATION",
+    "TOKEN_GREATER",
+    "TOKEN_LESS",
+    "TOKEN_NOT_EQUAL",
+    "TOKEN_GREATER_OR_EQUAL",
+    "TOKEN_LESS_OR_EQUAL",
+    "TOKEN_DOUBLE_EQUAL",
 };
 
 static Token* createToken(TOKEN_TYPE type, void* value) {
@@ -37,8 +50,9 @@ static Token* createToken(TOKEN_TYPE type, void* value) {
     return token;
 }
 
-Token* tokenFromString(char* str) {
-    Token *token;
+Token* parseToken(char* str, Token* prevToken) {
+
+    Token *token = NULL;
     int length = strlen(str);
     if(length == 1) {
         char ch = str[0];
@@ -46,12 +60,31 @@ Token* tokenFromString(char* str) {
         if(ch >= CHAR_NUMBER_0 && ch <= CHAR_NUMBER_9) {
             int* intNum = malloc(sizeof(int));
             *intNum = ch - CHAR_NUMBER_0;
+
             return createToken(TOKEN_NUMBER_LITERAL, intNum);
         }
 
         switch (ch) {
             case CHAR_EQUAL:
-                token = createToken(TOKEN_EQUAL, 0);
+                if(prevToken != NULL) {
+                    if(prevToken->type == TOKEN_GREATER){
+                        prevToken->type = TOKEN_GREATER_OR_EQUAL;
+                    } 
+                    else if(prevToken->type == TOKEN_LESS) {
+                        prevToken->type = TOKEN_LESS_OR_EQUAL;
+                    } 
+                    else if(prevToken->type == TOKEN_EXCLAMATION) {
+                        prevToken->type = TOKEN_NOT_EQUAL;
+                    }
+                    else if(prevToken->type == TOKEN_EQUAL) {
+                        prevToken->type = TOKEN_DOUBLE_EQUAL;
+                    } 
+                    else {
+                        token = createToken(TOKEN_EQUAL, 0);
+                    }
+                } else {
+                    token = createToken(TOKEN_EQUAL, 0);
+                }
                 break;
             case CHAR_SEMICOLON:
                 token = createToken(TOKEN_SEMICOLON, 0);
@@ -86,6 +119,29 @@ Token* tokenFromString(char* str) {
             case CHAR_CLOSE_CURLY_BRACKET:
                 token = createToken(TOKEN_CLOSE_CURLY_BRACKET, 0);
                 break;
+            case CHAR_PIPE:
+                if(prevToken && prevToken->type == TOKEN_PIPE) {
+                    prevToken->type = TOKEN_DOUBLE_PIPE;
+                } else {
+                    token = createToken(TOKEN_PIPE, 0);
+                }
+                break;
+            case CHAR_AMPERSAND:
+                if(prevToken && prevToken->type == TOKEN_AMPERSAND) {
+                    prevToken->type = TOKEN_DOUBLE_AMPERSAND;
+                } else {
+                    token = createToken(TOKEN_AMPERSAND, 0);
+                }
+                break;
+            case CHAR_GREATER:
+                token = createToken(TOKEN_GREATER, 0);
+                break;
+            case CHAR_LESS:
+                token = createToken(TOKEN_LESS, 0);
+                break;
+            case CHAR_EXCLAMATION:
+                token = createToken(TOKEN_EXCLAMATION, 0);
+                break;
             default:
                 token = createToken(TOKEN_IDENTIFIER, str);
                 break;
@@ -111,6 +167,12 @@ Token* tokenFromString(char* str) {
             *valueFalse = 0;
             token = createToken(TOKEN_BOOLEAN_LITERAL, valueFalse);
         } 
+        else if(strcmp(str, IF_KEYWORD) == 0) {
+            token = createToken(TOKEN_IF_KEYWORD, NULL);
+        } 
+        else if(strcmp(str, ELSE_KEYWORD) == 0) {
+            token = createToken(TOKEN_ELSE_KEYWORD, NULL);
+        } 
         else if(tryInt) {
             int* entity = malloc(sizeof(int));
             *entity = tryInt;
@@ -126,5 +188,5 @@ Token* tokenFromString(char* str) {
 
 TokenModuleType TokenModule = {
     TokenType,
-    tokenFromString
+    parseToken
 };

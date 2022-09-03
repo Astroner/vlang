@@ -11,20 +11,25 @@
 #include "loggers/loggers.h"
 
 char splitters[] = {
-    CHAR_SPACE,
-    CHAR_EQUAL,
-    CHAR_SEMICOLON,
-    CHAR_NL,
+    CHAR_NL,                  
+    CHAR_SPACE, 
+    CHAR_AMPERSAND,
     CHAR_OPEN_BRACKET,
     CHAR_CLOSE_BRACKET,
+    CHAR_STAR,
+    CHAR_PLUS,
     CHAR_COMMA,
     CHAR_DASH,
-    CHAR_PLUS,
     CHAR_SLASH,
-    CHAR_STAR,
+    CHAR_SEMICOLON,
+    CHAR_LESS,
+    CHAR_EQUAL,
+    CHAR_GREATER,
     CHAR_CARET,
     CHAR_OPEN_CURLY_BRACKET,
+    CHAR_PIPE,
     CHAR_CLOSE_CURLY_BRACKET,
+    CHAR_EXCLAMATION,
 };
 
 int main(int argc, char **argv) {
@@ -43,7 +48,8 @@ int main(int argc, char **argv) {
     }
     
     List *tokens = LinkedList.createList();
-
+    
+    Token* prevToken = NULL;
     char ch;
     int spanLength = 0;
     char splitter[2];
@@ -58,13 +64,23 @@ int main(int argc, char **argv) {
 
                 fseek(fp, 1, SEEK_CUR);
 
-                LinkedList.pushItem(tokens, TokenModule.tokenFromString(textChunk));
+                Token* result = TokenModule.parseToken(textChunk, prevToken);
+
+                if(result != NULL) {
+                    LinkedList.pushItem(tokens, result);
+                    prevToken = result;
+                }
             }
             if(ch != CHAR_NL & ch != CHAR_SPACE) {
                 splitter[0] = ch;
                 splitter[1] = '\0';
 
-                LinkedList.pushItem(tokens, TokenModule.tokenFromString(splitter));
+                Token* result = TokenModule.parseToken(splitter, prevToken);
+
+                if(result != NULL) {
+                    LinkedList.pushItem(tokens, result);
+                    prevToken = result;
+                }
             }
             spanLength = 0;
         } else {
