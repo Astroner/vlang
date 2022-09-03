@@ -12,12 +12,20 @@
 typedef unsigned char Priority;
 
 static Priority binomialOperationPriorities[] = {
-    /* AST_BINOMIAL_EXPRESSION_TYPE_BLANK */            0,
-    /* AST_BINOMIAL_EXPRESSION_TYPE_SUM */              1,
-    /* AST_BINOMIAL_EXPRESSION_TYPE_SUBTRACTION */      1,
-    /* AST_BINOMIAL_EXPRESSION_TYPE_MULTIPLICATION */   2,
-    /* AST_BINOMIAL_EXPRESSION_TYPE_DIVISION */         2,
-    /* AST_BINOMIAL_EXPRESSION_TYPE_POWER */            3,
+    /* AST_BINOMIAL_EXPRESSION_TYPE_BLANK */ 0,
+    /* AST_BINOMIAL_EXPRESSION_TYPE_OR */ 1,
+    /* AST_BINOMIAL_EXPRESSION_TYPE_AND */ 1,
+    /* AST_BINOMIAL_EXPRESSION_TYPE_EQUAL */ 2,
+    /* AST_BINOMIAL_EXPRESSION_TYPE_GREATER */ 2,
+    /* AST_BINOMIAL_EXPRESSION_TYPE_GREATER_OR_EQUAL */ 2,
+    /* AST_BINOMIAL_EXPRESSION_TYPE_LESS */ 2,
+    /* AST_BINOMIAL_EXPRESSION_TYPE_LESS_OR_EQUAL */ 2,
+    /* AST_BINOMIAL_EXPRESSION_TYPE_NOT_EQUAL */ 2,
+    /* AST_BINOMIAL_EXPRESSION_TYPE_SUM */ 3,
+    /* AST_BINOMIAL_EXPRESSION_TYPE_SUBTRACTION */ 3,
+    /* AST_BINOMIAL_EXPRESSION_TYPE_MULTIPLICATION */ 4,
+    /* AST_BINOMIAL_EXPRESSION_TYPE_DIVISION */ 4,
+    /* AST_BINOMIAL_EXPRESSION_TYPE_POWER */ 5,
 };
 
 static ASTNode* parseTokenExpression(
@@ -80,21 +88,46 @@ static ASTNode* parseTokenExpression(
                 }
                 break;
             }
+            case TOKEN_EXCLAMATION:
+
+            case TOKEN_DOUBLE_EQUAL:
+            case TOKEN_NOT_EQUAL:
+
+            case TOKEN_GREATER:
+            case TOKEN_GREATER_OR_EQUAL:
+            case TOKEN_LESS:
+            case TOKEN_LESS_OR_EQUAL:
+
+            case TOKEN_DOUBLE_PIPE:
+            case TOKEN_DOUBLE_AMPERSAND:
+
             case TOKEN_STAR:
             case TOKEN_SLASH:
             case TOKEN_DASH:
             case TOKEN_CARET:
             case TOKEN_PLUS: {
                 AST_UNARY_EXPRESSION_TYPE unaryOperation = AST_UNARY_EXPRESSION_TYPE_BLANK;
-                if(token->type == TOKEN_DASH) {
-                    unaryOperation = AST_UNARY_EXPRESSION_TYPE_NEGATIVE;
-                }
+                if(token->type == TOKEN_DASH) unaryOperation = AST_UNARY_EXPRESSION_TYPE_NEGATIVE;
+                if(token->type == TOKEN_EXCLAMATION) unaryOperation = AST_UNARY_EXPRESSION_TYPE_NOR;
+
                 AST_BINOMIAL_EXPRESSION_TYPE binomialOperation = AST_BINOMIAL_EXPRESSION_TYPE_BLANK;
                 if(token->type == TOKEN_PLUS) binomialOperation = AST_BINOMIAL_EXPRESSION_TYPE_SUM;
-                else if(token->type == TOKEN_DASH) binomialOperation = AST_BINOMIAL_EXPRESSION_TYPE_SUBTRACTION;
-                else if(token->type == TOKEN_STAR) binomialOperation = AST_BINOMIAL_EXPRESSION_TYPE_MULTIPLICATION;
-                else if(token->type == TOKEN_SLASH) binomialOperation = AST_BINOMIAL_EXPRESSION_TYPE_DIVISION;
-                else if(token->type == TOKEN_CARET) binomialOperation = AST_BINOMIAL_EXPRESSION_TYPE_POWER;
+                if(token->type == TOKEN_DASH) binomialOperation = AST_BINOMIAL_EXPRESSION_TYPE_SUBTRACTION;
+                if(token->type == TOKEN_STAR) binomialOperation = AST_BINOMIAL_EXPRESSION_TYPE_MULTIPLICATION;
+                if(token->type == TOKEN_SLASH) binomialOperation = AST_BINOMIAL_EXPRESSION_TYPE_DIVISION;
+                if(token->type == TOKEN_CARET) binomialOperation = AST_BINOMIAL_EXPRESSION_TYPE_POWER;
+
+                if(token->type == TOKEN_DOUBLE_EQUAL) binomialOperation = AST_BINOMIAL_EXPRESSION_TYPE_EQUAL;
+                if(token->type == TOKEN_NOT_EQUAL) binomialOperation = AST_BINOMIAL_EXPRESSION_TYPE_NOT_EQUAL;
+
+                if(token->type == TOKEN_GREATER) binomialOperation = AST_BINOMIAL_EXPRESSION_TYPE_GREATER;
+                if(token->type == TOKEN_GREATER_OR_EQUAL) binomialOperation = AST_BINOMIAL_EXPRESSION_TYPE_GREATER_OR_EQUAL;
+                if(token->type == TOKEN_LESS) binomialOperation = AST_BINOMIAL_EXPRESSION_TYPE_LESS;
+                if(token->type == TOKEN_LESS_OR_EQUAL) binomialOperation = AST_BINOMIAL_EXPRESSION_TYPE_LESS_OR_EQUAL;
+
+                if(token->type == TOKEN_DOUBLE_PIPE) binomialOperation = AST_BINOMIAL_EXPRESSION_TYPE_OR;
+                if(token->type == TOKEN_DOUBLE_AMPERSAND) binomialOperation = AST_BINOMIAL_EXPRESSION_TYPE_AND;
+
 
                 // handling unary expressions
                 if(
