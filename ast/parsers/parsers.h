@@ -23,6 +23,7 @@ typedef struct {
     void (*parseReturnStatement)(List* tokens, int listLimit, ParserResult* result);
     void (*parseBracketsRange)(List* tokens, unsigned int listLimit, BracketsRange* result);
     void (*parseVariableAssignment)(List* tokens, int listLimit, ParserResult* result);
+    void (*parseIfStatement)(List* tokens, int listLimit, ParserResult* result);
 } ParsersType;
 
 ParsersType Parsers;

@@ -143,6 +143,31 @@ static ASTNode* createBooleanLiteral(int* value) {
     return literal;
 }
 
+static ASTNode* createIfStatement(List* conditions) {
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->kind = AST_KIND_IF_STATEMENT;
+    node->value = conditions;
+    return node;
+}
+static ASTNode* createIfCondition(ASTNode* condition, List* statements) {
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->kind = AST_KIND_IF_CONDITION;
+
+    IfConditionValue* value = malloc(sizeof(IfConditionValue));
+    value->condition = condition;
+    value->statements = statements;
+
+    node->value = value;
+
+    return node;
+}
+static ASTNode* createElseStatement(List* statements) {
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->kind = AST_KIND_ELSE_STATEMENT;
+    node->value = statements;
+    return node;
+}
+
 CreatorsType Creators = {
     createVariableDeclaration,
     createIdentifier,
@@ -154,5 +179,8 @@ CreatorsType Creators = {
     createFunctionArgument,
     createReturnStatement,
     createVariableAssignment,
-    createBooleanLiteral
+    createBooleanLiteral,
+    createIfStatement,
+    createIfCondition,
+    createElseStatement,
 };

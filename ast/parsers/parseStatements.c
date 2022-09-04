@@ -35,6 +35,7 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInsideFun
     ParserResult parserResult;
     while(1) {
         Token* token = current->value;
+        // printf("T: %s, L: %d, LIM: %d\n", t2s(token), length, contentLength);
         switch(token->type) {
             case TOKEN_BOOLEAN_KEYWORD:
             case TOKEN_NUMBER_KEYWORD: {
@@ -108,7 +109,7 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInsideFun
                 } else if(guessIncludes(guess, GUESS_TYPE_FUNCTION_CALL)){
                     Parsers.parseFunctionCall(
                         nodeStart,
-                        contentLength - length + 1,
+                        contentLength - length + 2,
                         TRUE,
                         &parserResult
                     );
@@ -118,7 +119,7 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInsideFun
                     );
                     current = parserResult.lastNode;
                     nodeStart = current->next;
-                    length += parserResult.length - 2;
+                    length += parserResult.length - 3;
                     guess = GUESS_TYPE_BLANK;
                 } else {
                     fprintf(stderr, "[ERROR][AST][c9528490b4c6] Unexpected token '('\n");
@@ -135,6 +136,19 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInsideFun
                     length += parserResult.length - 1;
                 } else {
                     fprintf(stderr, "[ERROR][AST][18d1564eb42a] Unexpected 'return' keyword\n");
+                    exit(1);
+                }
+                break;
+            }
+            case TOKEN_IF_KEYWORD: {
+                if(guess == GUESS_TYPE_BLANK) {
+                    Parsers.parseIfStatement(nodeStart, contentLength - length, &parserResult);
+                    LinkedList.pushItem(nodes, parserResult.node);
+                    current = parserResult.lastNode;
+                    nodeStart = current->next;
+                    length += parserResult.length - 1;
+                } else {
+                    fprintf(stderr, "[ERROR][AST][73655fc4e4a2] Unexpected 'if' keyword\n");
                     exit(1);
                 }
                 break;

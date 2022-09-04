@@ -131,6 +131,36 @@ void logASTNode(ASTNode* node, int padding) {
         printf("Value:\n");
         logASTNode(assignment->value, padding + 2);
     }
+    if(node->kind == AST_KIND_IF_STATEMENT) {
+        List* conditions = node->value;
+        
+        ListNode* current = conditions;
+        while(1) {
+            logASTNode(current->value, padding + 1);
+            if(!(current = current->next)) return;
+        }
+    }
+    if(node->kind == AST_KIND_IF_CONDITION) {
+        IfConditionValue* condition = node->value;
+        logPadding(padding + 1);
+        printf("Condition: \n");
+        logASTNode(condition->condition, padding + 2);
+
+        logPadding(padding + 1);
+        printf("Statements: \n");
+        ListNode* current = condition->statements;
+        while(1) {
+            logASTNode(current->value, padding + 2);
+            if(!(current = current->next)) return;
+        }
+    }
+    if(node->kind == AST_KIND_ELSE_STATEMENT) {
+        ListNode* current = node->value;
+        while(1) {
+            logASTNode(current->value, padding + 1);
+            if(!(current = current->next)) return;
+        }
+    }
 }
 
 void ASTListLogger(void* item, int index) {

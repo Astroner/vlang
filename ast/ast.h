@@ -6,17 +6,20 @@
 typedef int AST_KIND;
 #define AST_KIND_BLANK 0
 
-#define AST_KIND_VARIABLE_DECLARATION 1
-#define AST_KIND_FUNCTION_CALL 2
-#define AST_KIND_IDENTIFIER 3
-#define AST_KIND_NUMBER_LITERAL 4
-#define AST_KIND_BINOMIAL_EXPRESSION 5
-#define AST_KIND_UNARY_EXPRESSION 6
-#define AST_KIND_FUNCTION_DEFINITION 7
-#define AST_KIND_FUNCTION_ARGUMENT 8
-#define AST_KIND_RETURN_STATEMENT 9
-#define AST_KIND_VARIABLE_ASSIGNMENT 10
-#define AST_KIND_BOOLEAN_LITERAL 11
+#define AST_KIND_VARIABLE_DECLARATION 1 // VariableDeclarationValue
+#define AST_KIND_FUNCTION_CALL 2        // FunctionCallValue
+#define AST_KIND_IDENTIFIER 3           // char*
+#define AST_KIND_NUMBER_LITERAL 4       // int*
+#define AST_KIND_BINOMIAL_EXPRESSION 5  // BinomialExpressionValue
+#define AST_KIND_UNARY_EXPRESSION 6     // UnaryExpressionValue
+#define AST_KIND_FUNCTION_DEFINITION 7  // FunctionDefinitionValue
+#define AST_KIND_FUNCTION_ARGUMENT 8    // FunctionArgumentValue
+#define AST_KIND_RETURN_STATEMENT 9     // ASTNode
+#define AST_KIND_VARIABLE_ASSIGNMENT 10 // VariableAssignmentValue
+#define AST_KIND_BOOLEAN_LITERAL 11     // int*(0, 1)
+#define AST_KIND_IF_STATEMENT 12        // List<ASTNode>
+#define AST_KIND_IF_CONDITION 13        // IfConditionValue
+#define AST_KIND_ELSE_STATEMENT 14      // List<ASTNode>
 
 typedef int AST_NODE_TYPE;
 #define AST_NODE_TYPE_BLANK 0
@@ -95,6 +98,11 @@ typedef struct {
     ASTNode* name;
     ASTNode* value;
 } VariableAssignmentValue;
+
+typedef struct {
+    ASTNode* condition;
+    List* statements;
+} IfConditionValue;
 
 typedef struct {
     List* (*createASTFromTokens)(List* token);

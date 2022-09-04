@@ -314,11 +314,24 @@ void runVariableAssignment(VariableAssignmentValue* assignment, RuntimeContext* 
     free(nextDeclaration);
 }
 
+void runIfStatement(List* conditions, RuntimeContext* ctx) {
+    
+}
+void runIfCondition(IfConditionValue* condition, RuntimeContext* ctx) {
+    
+}
+void runElseStatement(List* statements, RuntimeContext* ctx) {
+    
+}
+
 RunnersModule Runners = {
     runVariableDeclaration,
     runFunctionCall,
     runUnaryExpression,
     runBinomialExpression,
     runFunctionDefinition,
-    runVariableAssignment
+    runVariableAssignment,
+    runIfStatement,
+    runIfCondition,
+    runElseStatement,
 };

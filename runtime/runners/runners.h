@@ -10,6 +10,9 @@ typedef struct {
     Declaration* (*runBinomialExpression)(BinomialExpressionValue* expression, RuntimeContext* ctx);
     void (*runFunctionDefinition)(FunctionDefinitionValue* definition, RuntimeContext* ctx);
     void (*runVariableAssignment)(VariableAssignmentValue* assignment, RuntimeContext* ctx);
+    void (*runIfStatement)(List* conditions, RuntimeContext* ctx);
+    void (*runIfCondition)(IfConditionValue* condition, RuntimeContext* ctx);
+    void (*runElseStatement)(List* statements, RuntimeContext* ctx);
 } RunnersModule;
 
 RunnersModule Runners;

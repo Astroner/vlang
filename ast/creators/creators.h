@@ -15,6 +15,9 @@ typedef struct {
     ASTNode* (*createReturnStatement)(ASTNode* value);
     ASTNode* (*createVariableAssignment)(ASTNode* name, ASTNode* value);
     ASTNode* (*createBooleanLiteral)(int* value);
+    ASTNode* (*createIfStatement)(List* conditions);
+    ASTNode* (*createIfCondition)(ASTNode* condition, List* statements);
+    ASTNode* (*createElseStatement)(List* statements);
 } CreatorsType;
 
 CreatorsType Creators;

@@ -358,6 +358,47 @@ static void parseBracketsRange(List* tokens, unsigned int listLimit, BracketsRan
     }
 }
 
+static void parseCurlyBracketsRange(List* tokens, unsigned int listLimit, BracketsRange* result) {
+    ListNode* openBracketNode = tokens;
+
+    if(openBracketNode->next == NULL) {
+        fprintf(stderr, "[ERROR][AST][589d73760b05] Expected expression\n");
+        exit(1);
+    }
+
+    ListNode* current = openBracketNode->next;
+    unsigned int rangeLength = 0;
+    unsigned int bracketsDepth = 0;
+    while(1) {
+        Token* token = current->value;
+        rangeLength++;
+        // printf("Token: '%s', length: %d\n", t2s(token), rangeLength);
+
+        switch(token->type) {
+            case TOKEN_OPEN_CURLY_BRACKET: {
+                bracketsDepth++;
+                break;
+            }
+            case TOKEN_CLOSE_CURLY_BRACKET: {
+                if(bracketsDepth == 0) {
+                    result->closeBracket = current;
+                    result->length = rangeLength + 1;
+                    return;
+                } else {
+                    bracketsDepth--;
+                }
+                break;
+            }
+        }
+        
+
+        if(!(current = current->next) || (listLimit > 0 && rangeLength == listLimit)) {
+            fprintf(stderr, "[ERROR][AST][6e54788c34fa] Expected closing curly bracket\n");
+            exit(1);
+        }
+    }
+}
+
 static void parseVariableAssignment(List* tokens, int listLimit, ParserResult* result) {
     ASTNode* name;
     ASTNode* value;
@@ -383,13 +424,136 @@ static void parseVariableAssignment(List* tokens, int listLimit, ParserResult* r
             break;
         }
         expressionLength++;
-        if(!(current = current->next) || (listLimit > 0 && expressionLength == listLimit)) {
+        if(!(current = current->next) || (listLimit > 0 && expressionLength == listLimit - 2)) {
             fprintf(stderr, "[ERROR][AST][28af67d048f6] Expected semicolon at the end of the expression\n");
             exit(1);
         }
     }
     result->node = Creators.createVariableAssignment(name, value);
     result->length = expressionLength + 3;
+}
+
+static void parseIfCondition(List* tokens, int listLimit, ParserResult* result) {
+    unsigned int length = 0;
+
+    ListNode* openNode = tokens->next;
+    
+    if(openNode == NULL || ((Token*)openNode->value)->type != TOKEN_OPEN_BRACKET) {
+        fprintf(stderr, "[ERROR][AST][b7e40d022af3] Expected open bracket\n");
+        exit(1);
+    }
+
+    BracketsRange bracketsRange;
+    parseBracketsRange(openNode, listLimit, &bracketsRange);
+
+    ListNode* expressionStart = openNode->next;
+
+    if(expressionStart == NULL) {
+        fprintf(stderr, "[ERROR][AST][3857aa02ec4c] Expected if-case condition\n");
+        exit(1);
+    }
+
+    ASTNode* condition = parseExpression(expressionStart, bracketsRange.length - 2);
+
+    length += bracketsRange.length;
+
+    ListNode* curlyOpen = bracketsRange.closeBracket->next;
+
+    if(curlyOpen == NULL || ((Token*)curlyOpen->value)->type != TOKEN_OPEN_CURLY_BRACKET) {
+        fprintf(stderr, "[ERROR][AST][e3df03ea8978] Expected open curly bracket for if-condition\n");
+        exit(1);
+    }
+
+    parseCurlyBracketsRange(curlyOpen, listLimit - bracketsRange.length - 1, &bracketsRange);
+    
+    result->lastNode = bracketsRange.closeBracket;
+    result->length = length + bracketsRange.length + 1;
+    if(bracketsRange.length == 2) {
+        result->node = Creators.createIfCondition(condition, LinkedList.createList());
+    } else {
+        result->node = Creators.createIfCondition(
+            condition, 
+            parseStatements(curlyOpen->next, bracketsRange.length - 2, FALSE)
+        );
+    }
+}
+
+static void parseElseStatement(List* tokens, int listLimit, ParserResult* result) {
+    unsigned int length = 0;
+
+    ListNode* curlyOpen = tokens->next;
+
+    if(curlyOpen == NULL || ((Token*)curlyOpen->value)->type != TOKEN_OPEN_CURLY_BRACKET) {
+        fprintf(stderr, "[ERROR][AST][e3df03ea8978] Expected open curly bracket for else-statement\n");
+        exit(1);
+    }
+
+    BracketsRange bracketsRange;
+
+    parseCurlyBracketsRange(curlyOpen, listLimit - 1, &bracketsRange);
+    
+    result->lastNode = bracketsRange.closeBracket;
+    result->length = length + bracketsRange.length + 1;
+    if(bracketsRange.length == 2) {
+        result->node = Creators.createElseStatement(LinkedList.createList());
+    } else {
+        result->node = Creators.createElseStatement(
+            parseStatements(curlyOpen->next, bracketsRange.length - 2, FALSE)
+        );
+    }
+}
+
+static void parseIfStatement(List* tokens, int listLimit, ParserResult* result) {
+    List* conditions = LinkedList.createList();
+
+    ParserResult parserResult;
+    
+    unsigned int length = 0;
+    ListNode* current = tokens;
+    while(1) {
+        Token* token = current->value;
+        length++;
+
+        if(token->type == TOKEN_IF_KEYWORD) {
+            parseIfCondition(current, listLimit - length + 1, &parserResult);
+            current = parserResult.lastNode;
+            length += parserResult.length - 1;
+            LinkedList.pushItem(conditions, parserResult.node);
+
+            if(current->next == NULL || ((Token*)current->next->value)->type != TOKEN_ELSE_KEYWORD) {
+                break;
+            }
+        } else if(token->type == TOKEN_ELSE_KEYWORD) {
+            if(
+                current->next == NULL
+                || (
+                    ((Token*)current->next->value)->type != TOKEN_OPEN_CURLY_BRACKET
+                    && ((Token*)current->next->value)->type != TOKEN_IF_KEYWORD
+                )
+            ) {
+                fprintf(stderr, "[ERROR][AST][5e7fbd6744ef] Unexpected token 'else'\n");
+                exit(1);
+            } else if(((Token*)current->next->value)->type == TOKEN_OPEN_CURLY_BRACKET) {
+                parseElseStatement(current, listLimit - length + 1, &parserResult);
+                current = parserResult.lastNode;
+                length += parserResult.length - 1;
+                LinkedList.pushItem(conditions, parserResult.node);
+                break;
+            }
+        } else {
+            fprintf(stderr, "[ERROR][AST][b494de1fbb8e] Unexpected token '%s'\n", t2s(token));
+            exit(1);
+        }
+
+        if(!(current = current->next) || length == listLimit) {
+            fprintf(stderr, "[ERROR][AST][9a389a05f584] Expected end of if-statement\n");
+            exit(1);
+        }
+    }
+
+    result->node = Creators.createIfStatement(conditions);
+    result->length = length;
+    result->lastNode = current;
 }
 
 ParsersType Parsers = {
@@ -399,4 +563,5 @@ ParsersType Parsers = {
     parseReturnStatement,
     parseBracketsRange,
     parseVariableAssignment,
+    parseIfStatement
 };
