@@ -59,7 +59,7 @@ static void parseVariableDefinition(List* tokens, int listLimit, ParserResult* r
         }
         expressionLength++;
         if(!(current = current->next) || (listLimit > 0 && expressionLength == listLimit)) {
-            fprintf(stderr, "[ERROR][AST][28af67d048f6] Expected semicolon at the end of the expression\n");
+            fprintf(stderr, "[ERROR][AST][28af67d041f6] Expected semicolon at the end of the expression\n");
             exit(1);
         }
     }
@@ -261,24 +261,14 @@ static void parseFunctionDefinition(List* tokens, int listLimit, ParserResult* r
         fprintf(stderr, "[ERROR][AST][fdc18f2884b8] Expected function body after '{'\n");
         exit(1);
     }
-    unsigned int bodyLength = 0;
-    while(1) {
-        token = current->value;
-        if(token->type == TOKEN_CLOSE_CURLY_BRACKET) {
-            break;
-        } else {
-            bodyLength++;
-        }
-        if(!(current = current->next)) {
-            fprintf(stderr, "[ERROR][AST][a6c5b4093efc] Expected function body end with '}'\n");
-            exit(1);
-        }
-    }
-    List* statements = parseStatements(bodyOpenNode->next, bodyLength, TRUE);
 
+    BracketsRange bracketRange;
+    Parsers.parseCurlyBracketsRange(bodyOpenNode, 0, &bracketRange);
 
-    result->lastNode = current;
-    result->length = 3 + argumentsTokenLength + 1 + bodyLength + 1;
+    List* statements = parseStatements(bodyOpenNode->next, bracketRange.length - 2, TRUE);
+
+    result->lastNode = bracketRange.closeBracket;
+    result->length = 3 + argumentsTokenLength + bracketRange.length;
     result->node = Creators.createFunctionDefinition(
         name, 
         returnType, 
@@ -299,13 +289,13 @@ static void parseReturnStatement(List* tokens, int listLimit, ParserResult* resu
     ListNode* expressionStart = current;
     int expressionLength = 0;
     while(1) {
+        expressionLength++;
         Token* token = current->value;
         if(token->type == TOKEN_SEMICOLON) {
-            value = parseExpression(expressionStart, expressionLength);
+            value = parseExpression(expressionStart, expressionLength - 1);
             break;
         }
 
-        expressionLength++;
         if(!(current = current->next) || (listLimit > 0 && expressionLength == listLimit)) {
             fprintf(stderr, "[ERROR][AST][7200110bae25] Expected ';' at the end of the return statement\n");
             exit(1);
@@ -563,5 +553,6 @@ ParsersType Parsers = {
     parseReturnStatement,
     parseBracketsRange,
     parseVariableAssignment,
-    parseIfStatement
+    parseIfStatement,
+    parseCurlyBracketsRange
 };

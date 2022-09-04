@@ -33,11 +33,20 @@ static void freeDeclarationValue(Declaration* declaration) {
         free(((int*)declaration->value));
     }
 }
+static void clearDeclaration(char* key, void* value) {
+    RuntimeUtils.freeDeclaration(value);
+}
+
+void freeDeclarationsTable(Table* variables) {
+    HashTable.forEach(variables, clearDeclaration);
+    HashTable.clear(variables);
+}
 
 RuntimeUtilsModule RuntimeUtils = {
     createDeclaration,
     deepCopyDeclaration,
     freeDeclaration,
-    freeDeclarationValue
+    freeDeclarationValue,
+    freeDeclarationsTable,
 };
 

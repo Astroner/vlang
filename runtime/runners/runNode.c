@@ -19,7 +19,14 @@ Declaration* runNode(ASTNode* node, RuntimeContext* ctx) {
             return Runners.runUnaryExpression(node->value, ctx);
         case AST_KIND_IDENTIFIER: {
             Declaration* declaration = Scopes.getItem(ctx->scope, node->value);
-            if(declaration == NULL) return NULL;
+            if(declaration == NULL) {
+                fprintf(
+                    stderr, 
+                    "[ERROR][RUNTIME][c7a061b4f869] Variable '%s' is not defined\n", 
+                    node->value
+                );
+                exit(1);
+            }
             return RuntimeUtils.deepCopyDeclaration(declaration);
         }
         case AST_KIND_BOOLEAN_LITERAL:
@@ -49,6 +56,9 @@ Declaration* runNode(ASTNode* node, RuntimeContext* ctx) {
             break;
         case AST_KIND_VARIABLE_ASSIGNMENT:
             Runners.runVariableAssignment(node->value, ctx);
+            break;
+        case AST_KIND_IF_STATEMENT:
+            Runners.runIfStatement(node->value, ctx);
             break;
         default:
             fprintf(stderr, "[ERROR][RUNTIME][95b789dec5eb] Cannot execute node '%s'\n", AST.NodeKind[node->kind]);

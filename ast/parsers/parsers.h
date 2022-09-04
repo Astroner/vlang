@@ -24,6 +24,7 @@ typedef struct {
     void (*parseBracketsRange)(List* tokens, unsigned int listLimit, BracketsRange* result);
     void (*parseVariableAssignment)(List* tokens, int listLimit, ParserResult* result);
     void (*parseIfStatement)(List* tokens, int listLimit, ParserResult* result);
+    void (*parseCurlyBracketsRange)(List* tokens, unsigned int listLimit, BracketsRange* result);
 } ParsersType;
 
 ParsersType Parsers;

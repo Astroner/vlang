@@ -28,10 +28,6 @@ static void runVariableDeclaration(VariableDeclarationValue* variable, RuntimeCo
     Scopes.setItem(ctx->scope, variable->name->value, declaration);
 }
 
-static void clearDeclaration(char* key, void* value) {
-    RuntimeUtils.freeDeclaration(value);
-}
-
 static Declaration* runFunctionCall(FunctionCallValue* call, RuntimeContext* ctx) {
 
     if(strcmp(call->name->value, "log") == 0) {
@@ -121,10 +117,7 @@ static Declaration* runFunctionCall(FunctionCallValue* call, RuntimeContext* ctx
         exit(1);
     }
 
-    Table* variablesTable = Scopes.shiftTable(functionScope);
-
-    HashTable.forEach(variablesTable, clearDeclaration);
-    HashTable.clear(variablesTable);
+    RuntimeUtils.freeDeclarationsTable(Scopes.shiftTable(functionScope));
 
     if(functionScope->tables->next) {
         fprintf(stderr, "[ERROR][RUNTIME][125eb3c21bb7] Function scope is not clear. [%s]\n", call->name->value);
@@ -140,12 +133,20 @@ static Declaration* runFunctionCall(FunctionCallValue* call, RuntimeContext* ctx
 static Declaration* runUnaryExpression(UnaryExpressionValue* expression, RuntimeContext* ctx) {
     Declaration* declaration = runNode(expression->member, ctx);
 
-    if(declaration->type != AST_NODE_TYPE_NUMBER) {
-        fprintf(stderr, "[ERROR][RUNTIME][032952866739] Cannot get negative type = '%s'\n", AST.NodeType[declaration->type]);
-        exit(1);
+    if(expression->type == AST_UNARY_EXPRESSION_TYPE_NEGATIVE) {
+        if(declaration->type != AST_NODE_TYPE_NUMBER) {
+            fprintf(stderr, "[ERROR][RUNTIME][032952866739] Cannot get negative type = '%s'\n", AST.NodeType[declaration->type]);
+            exit(1);
+        }
+        *((int*)declaration->value) = - *((int*)declaration->value);
+    } else if(expression->type == AST_UNARY_EXPRESSION_TYPE_NOR) {
+        if(declaration->type != AST_NODE_TYPE_BOOLEAN) {
+            fprintf(stderr, "[ERROR][RUNTIME][432fe7c9503e] Cannot execute nor for type = '%s'\n", AST.NodeType[declaration->type]);
+            exit(1);
+        }
+        *((int*)declaration->value) = ! *((int*)declaration->value);
     }
 
-    *((int*)declaration->value) = - *((int*)declaration->value);
 
     return declaration;
 }
@@ -286,7 +287,7 @@ static void runFunctionDefinition(FunctionDefinitionValue* definition, RuntimeCo
     HashTable.set(ctx->functions, definition->name->value, definition);
 }
 
-void runVariableAssignment(VariableAssignmentValue* assignment, RuntimeContext* ctx) {
+static void runVariableAssignment(VariableAssignmentValue* assignment, RuntimeContext* ctx) {
     Declaration* declaration = Scopes.getItem(ctx->scope, assignment->name->value);
 
     if(declaration == NULL) {
@@ -314,14 +315,46 @@ void runVariableAssignment(VariableAssignmentValue* assignment, RuntimeContext* 
     free(nextDeclaration);
 }
 
-void runIfStatement(List* conditions, RuntimeContext* ctx) {
-    
-}
-void runIfCondition(IfConditionValue* condition, RuntimeContext* ctx) {
-    
-}
-void runElseStatement(List* statements, RuntimeContext* ctx) {
-    
+static void runIfStatement(List* conditions, RuntimeContext* ctx) {
+    List* statements = NULL;
+    ListNode* current = conditions;
+    while(1) {
+        ASTNode* condition = current->value;
+        
+        if(condition->kind == AST_KIND_IF_CONDITION) {
+            IfConditionValue* conditionValue = condition->value;
+            Declaration* conditionResult = runNode(conditionValue->condition, ctx);
+            if(conditionResult->type != AST_NODE_TYPE_BOOLEAN) {
+                fprintf(
+                    stderr, 
+                    "[ERROR][RUNTIME][733a43c282ad] Result of if-case condition expression must be boolean but got '%s'\n", 
+                    AST.NodeType[conditionResult->type]
+                );
+                exit(1);
+            }
+            if(*((int*)conditionResult->value) == 1) {
+                statements = conditionValue->statements;
+                break;
+            }
+        }
+        if(condition->kind == AST_KIND_ELSE_STATEMENT) {
+            statements = condition->value;
+            break;
+        }
+
+        if(!(current = current->next)) break;
+    }
+    if(statements == NULL) return;
+
+    Scopes.addTable(ctx->scope, HashTable.create());
+
+    current = statements;
+    while(1) {
+        ASTNode* statement = current->value;
+        runNode(statement, ctx);
+        if(!(current = current->next)) break;
+    }
+    RuntimeUtils.freeDeclarationsTable(Scopes.shiftTable(ctx->scope));
 }
 
 RunnersModule Runners = {
@@ -332,6 +365,4 @@ RunnersModule Runners = {
     runFunctionDefinition,
     runVariableAssignment,
     runIfStatement,
-    runIfCondition,
-    runElseStatement,
 };

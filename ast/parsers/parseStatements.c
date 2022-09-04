@@ -30,10 +30,11 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInsideFun
     ListNode* current = tokens;
     ListNode* nodeStart = current;
 
-    unsigned int length = 1;
+    unsigned int length = 0;
     
     ParserResult parserResult;
     while(1) {
+        length++;
         Token* token = current->value;
         // printf("T: %s, L: %d, LIM: %d\n", t2s(token), length, contentLength);
         switch(token->type) {
@@ -74,7 +75,7 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInsideFun
                 } else if(guessIncludes(guess, GUESS_TYPE_VARIABLE_ASSIGNMENT)) {
                     Parsers.parseVariableAssignment(
                         nodeStart,
-                        contentLength - length + 1,
+                        contentLength - length + 2,
                         &parserResult
                     );
                     LinkedList.pushItem(
@@ -158,7 +159,6 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInsideFun
                 exit(1);
             }
         }
-        length++;
 
         if(!(current = current->next) || (contentLength > 0 && length == contentLength)) break;
     }

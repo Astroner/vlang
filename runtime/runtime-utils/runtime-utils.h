@@ -8,6 +8,7 @@ typedef struct {
     Declaration* (*deepCopyDeclaration)(Declaration* src);
     void (*freeDeclaration)(Declaration* declaration);
     void (*freeDeclarationValue)(Declaration* declaration);
+    void (*freeDeclarationsTable)(Table* variables);
 } RuntimeUtilsModule;
 
 RuntimeUtilsModule RuntimeUtils;

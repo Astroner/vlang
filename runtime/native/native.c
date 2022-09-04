@@ -27,10 +27,6 @@ static void log(FunctionCallValue* call, RuntimeContext* ctx) {
         ASTNode* node = current->value;
 
         Declaration* declaration = runNode(node, ctx);
-        if(declaration == NULL && node->kind == AST_KIND_IDENTIFIER) {
-            fprintf(stderr, "[ERROR][RUNTIME][77d1d3163deb] Variable '%s' is not defined\n", node->value);
-            exit(1);
-        }
         printDeclaration(declaration);
         RuntimeUtils.freeDeclaration(declaration);
 
