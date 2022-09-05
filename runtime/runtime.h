@@ -23,6 +23,7 @@ typedef struct {
 typedef struct {
     Scope* scope;
     Table* functions;
+    Declaration* returnValue;
 } RuntimeContext;
 
 typedef struct {

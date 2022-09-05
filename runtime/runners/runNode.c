@@ -60,6 +60,9 @@ Declaration* runNode(ASTNode* node, RuntimeContext* ctx) {
         case AST_KIND_IF_STATEMENT:
             Runners.runIfStatement(node->value, ctx);
             break;
+        case AST_KIND_RETURN_STATEMENT:
+            ctx->returnValue = runNode(node->value, ctx);
+            break;
         default:
             fprintf(stderr, "[ERROR][RUNTIME][95b789dec5eb] Cannot execute node '%s'\n", AST.NodeKind[node->kind]);
             exit(1);

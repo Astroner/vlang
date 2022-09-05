@@ -15,7 +15,7 @@
  * @return List<ASTNodes>* 
  */
 static List* createASTFromTokens(List* tokens) {
-    return parseStatements(tokens, 0, FALSE);
+    return parseStatements(tokens, 0, TRUE);
 }
 
 ASTModuleType AST = {

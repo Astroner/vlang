@@ -267,7 +267,7 @@ static void parseFunctionDefinition(List* tokens, int listLimit, ParserResult* r
     BracketsRange bracketRange;
     Parsers.parseCurlyBracketsRange(bodyOpenNode, 0, &bracketRange);
 
-    List* statements = parseStatements(bodyOpenNode->next, bracketRange.length - 2, TRUE);
+    List* statements = parseStatements(bodyOpenNode->next, bracketRange.length - 2, FALSE);
 
     result->lastNode = bracketRange.closeBracket;
     result->length = 3 + argumentsTokenLength + bracketRange.length;

@@ -22,7 +22,7 @@
  * @param length content length (0 means no limit)
  * @return List* 
  */
-List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInsideFunction) {
+List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInGlobalScope) {
     List* nodes = LinkedList.createList();
 
     GUESS_TYPE guess = GUESS_TYPE_BLANK;
@@ -93,7 +93,7 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInsideFun
                 break;
             }
             case TOKEN_OPEN_BRACKET: {
-                if(guessIncludes(guess, GUESS_TYPE_FUNCTION_DEFINITION)) {
+                if(guessIncludes(guess, GUESS_TYPE_FUNCTION_DEFINITION) && isInGlobalScope) {
                     Parsers.parseFunctionDefinition(
                         nodeStart,
                         contentLength - length + 2,
@@ -129,7 +129,7 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInsideFun
                 break;
             }
             case TOKEN_RETURN_KEYWORD: {
-                if(guess == GUESS_TYPE_BLANK && isInsideFunction) {
+                if(guess == GUESS_TYPE_BLANK && !isInGlobalScope) {
                     Parsers.parseReturnStatement(nodeStart, contentLength - length, &parserResult);
                     LinkedList.pushItem(nodes, parserResult.node);
                     current = parserResult.lastNode;

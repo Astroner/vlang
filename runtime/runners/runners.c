@@ -62,7 +62,8 @@ static Declaration* runFunctionCall(FunctionCallValue* call, RuntimeContext* ctx
 
     RuntimeContext functionContext = {
         functionScope,
-        ctx->functions
+        ctx->functions,
+        NULL
     };
 
     if(definition->argumentsCount > 0) {
@@ -95,24 +96,17 @@ static Declaration* runFunctionCall(FunctionCallValue* call, RuntimeContext* ctx
         }
     }
 
-    Declaration* returnValue = NULL;
     ListNode* current = definition->statements;
     while(1) {
         ASTNode* statement = current->value;
-        if(statement->kind == AST_KIND_RETURN_STATEMENT) {
-            ASTNode* returnStatementExpression = statement->value;
-            returnValue = runNode(returnStatementExpression, &functionContext);
-            break;
-        } else {
-            runNode(statement, &functionContext);
-        }
+        runNode(statement, &functionContext);
 
-        if(!(current = current->next)) {
+        if(functionContext.returnValue != NULL || !(current = current->next)) {
             break;
         }
     }
 
-    if(returnValue == NULL) {
+    if(functionContext.returnValue == NULL) {
         fprintf(stderr, "[ERROR][RUNTIME][71v21kgh21deb] Function '%s' should return something\n", call->name->value);
         exit(1);
     }
@@ -127,7 +121,7 @@ static Declaration* runFunctionCall(FunctionCallValue* call, RuntimeContext* ctx
     free(functionScope->tables);
     free(functionScope);
 
-    return returnValue;
+    return functionContext.returnValue;
 }
 
 static Declaration* runUnaryExpression(UnaryExpressionValue* expression, RuntimeContext* ctx) {
@@ -352,7 +346,10 @@ static void runIfStatement(List* conditions, RuntimeContext* ctx) {
     while(1) {
         ASTNode* statement = current->value;
         runNode(statement, ctx);
-        if(!(current = current->next)) break;
+        if(
+            statement->kind == AST_KIND_RETURN_STATEMENT 
+            || !(current = current->next)
+        ) break;
     }
     RuntimeUtils.freeDeclarationsTable(Scopes.shiftTable(ctx->scope));
 }

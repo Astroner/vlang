@@ -10,7 +10,8 @@
 static void run(List* statements) {
     RuntimeContext ctx = {
         Scopes.createScope(NULL),
-        HashTable.create()
+        HashTable.create(),
+        NULL,
     };
 
     ListNode* current = statements;
