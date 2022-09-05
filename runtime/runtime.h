@@ -15,9 +15,14 @@ static size_t typeSizes[] = {
     sizeof(int)
 };
 
+typedef union {
+    int boolean;
+    int number;
+} DeclarationValue;
+
 typedef struct {
     AST_NODE_TYPE type;
-    void* value;
+    DeclarationValue value;
 } Declaration;
 
 typedef struct {

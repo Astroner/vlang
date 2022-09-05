@@ -33,16 +33,14 @@ Declaration* runNode(ASTNode* node, RuntimeContext* ctx) {
         case AST_KIND_NUMBER_LITERAL: {
             Declaration* declaration = malloc(sizeof(Declaration));
 
-            if(node->kind == AST_KIND_NUMBER_LITERAL) {
-                declaration->type = AST_NODE_TYPE_NUMBER;
-                declaration->value = malloc(sizeof(int));
-            } else {
+            if(node->kind == AST_KIND_BOOLEAN_LITERAL) {
                 declaration->type = AST_NODE_TYPE_BOOLEAN;
-                declaration->value = malloc(sizeof(int));
+            } else {
+                declaration->type = AST_NODE_TYPE_NUMBER;
             }
 
             memcpy(
-                declaration->value,
+                &declaration->value,
                 node->value,
                 sizeof(int)
             );

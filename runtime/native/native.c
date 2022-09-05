@@ -9,9 +9,9 @@
 
 static void printDeclaration(Declaration* declaration) {
     if(declaration->type == AST_NODE_TYPE_NUMBER) {
-        printf("%d", *((int*)declaration->value));
+        printf("%d", declaration->value.number);
     } else if(declaration->type == AST_NODE_TYPE_BOOLEAN) {
-        if(*((int*)declaration->value) == 1) {
+        if(declaration->value.boolean) {
             printf("true");
         } else {
             printf("false");
@@ -28,7 +28,7 @@ static void log(FunctionCallValue* call, RuntimeContext* ctx) {
 
         Declaration* declaration = runNode(node, ctx);
         printDeclaration(declaration);
-        RuntimeUtils.freeDeclaration(declaration);
+        free(declaration);
 
         if(current->next) printf(" ");
 
@@ -61,17 +61,17 @@ int randomNumber(FunctionCallValue* call, RuntimeContext* ctx) {
     int value = (
         (
             rand() % (
-                *((int*)max->value) 
+                max->value.number
                 - 
-                *((int*)min->value) + 1
+                min->value.number + 1
             )
         ) 
         + 
-        *((int*)min->value)
+        min->value.number
     );
 
-    RuntimeUtils.freeDeclaration(min);
-    RuntimeUtils.freeDeclaration(max);
+    free(min);
+    free(max);
 
     return value;
 }

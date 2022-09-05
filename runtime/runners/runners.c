@@ -32,12 +32,13 @@ static Declaration* runFunctionCall(FunctionCallValue* call, RuntimeContext* ctx
 
     if(strcmp(call->name->value, "log") == 0) {
         Native.log(call, ctx);
-        return RuntimeUtils.createDeclaration(AST_NODE_TYPE_BLANK, NULL);
+        DeclarationValue emptyValue;
+        return RuntimeUtils.createDeclaration(AST_NODE_TYPE_BLANK, emptyValue);
     }
     if(strcmp(call->name->value, "randomNumber") == 0) {
-        int* randInt = malloc(sizeof(int));
-        *randInt = Native.randomNumber(call, ctx);
-        return RuntimeUtils.createDeclaration(AST_NODE_TYPE_NUMBER, randInt);
+        DeclarationValue value;
+        value.number = Native.randomNumber(call, ctx);
+        return RuntimeUtils.createDeclaration(AST_NODE_TYPE_NUMBER, value);
     }
 
     FunctionDefinitionValue* definition = HashTable.get(ctx->functions, call->name->value);
@@ -132,39 +133,17 @@ static Declaration* runUnaryExpression(UnaryExpressionValue* expression, Runtime
             fprintf(stderr, "[ERROR][RUNTIME][032952866739] Cannot get negative type = '%s'\n", AST.NodeType[declaration->type]);
             exit(1);
         }
-        *((int*)declaration->value) = - *((int*)declaration->value);
+        declaration->value.number = -declaration->value.number;
     } else if(expression->type == AST_UNARY_EXPRESSION_TYPE_NOR) {
         if(declaration->type != AST_NODE_TYPE_BOOLEAN) {
             fprintf(stderr, "[ERROR][RUNTIME][432fe7c9503e] Cannot execute nor for type = '%s'\n", AST.NodeType[declaration->type]);
             exit(1);
         }
-        *((int*)declaration->value) = ! *((int*)declaration->value);
+        declaration->value.boolean = !declaration->value.boolean;
     }
 
 
     return declaration;
-}
-
-static void initiateBinomialOperationResult(Declaration* declaration, AST_NODE_TYPE operandsType, AST_BINOMIAL_EXPRESSION_TYPE operationType){
-    switch(operationType) {
-        case AST_BINOMIAL_EXPRESSION_TYPE_AND:
-        case AST_BINOMIAL_EXPRESSION_TYPE_OR:
-        case AST_BINOMIAL_EXPRESSION_TYPE_EQUAL:
-        case AST_BINOMIAL_EXPRESSION_TYPE_NOT_EQUAL:
-        case AST_BINOMIAL_EXPRESSION_TYPE_GREATER:
-        case AST_BINOMIAL_EXPRESSION_TYPE_GREATER_OR_EQUAL:
-        case AST_BINOMIAL_EXPRESSION_TYPE_LESS:
-        case AST_BINOMIAL_EXPRESSION_TYPE_LESS_OR_EQUAL: {
-            declaration->type = AST_NODE_TYPE_BOOLEAN;
-            declaration->value = malloc(typeSize(AST_NODE_TYPE_BOOLEAN));
-            break;
-        }
-        default: {
-            declaration->type = operandsType;
-            declaration->value = malloc(typeSize(operandsType));
-            break;
-        }
-    }
 }
 
 static Declaration* runBinomialExpression(BinomialExpressionValue* expression, RuntimeContext* ctx) {
@@ -183,46 +162,52 @@ static Declaration* runBinomialExpression(BinomialExpressionValue* expression, R
         exit(1);
     }
 
-    initiateBinomialOperationResult(result, first->type, expression->type);
-
     switch(first->type) {
         case AST_NODE_TYPE_NUMBER: {
-            int x = *((int*)first->value);
-            int y = *((int*)second->value);
-
             switch(expression->type) {
                 case AST_BINOMIAL_EXPRESSION_TYPE_SUM:
-                    *((int*)result->value) = x + y;
+                    result->type = AST_NODE_TYPE_NUMBER;
+                    result->value.number = first->value.number + second->value.number;
                     break;
                 case AST_BINOMIAL_EXPRESSION_TYPE_DIVISION:
-                    *((int*)result->value) = x / y;
+                    result->type = AST_NODE_TYPE_NUMBER;
+                    result->value.number = first->value.number / second->value.number;
                     break;
                 case AST_BINOMIAL_EXPRESSION_TYPE_MULTIPLICATION:
-                    *((int*)result->value) = x * y;
+                    result->type = AST_NODE_TYPE_NUMBER;
+                    result->value.number = first->value.number * second->value.number;
                     break;
                 case AST_BINOMIAL_EXPRESSION_TYPE_SUBTRACTION:
-                    *((int*)result->value) = x - y;
+                    result->type = AST_NODE_TYPE_NUMBER;
+                    result->value.number = first->value.number - second->value.number;
                     break;
                 case AST_BINOMIAL_EXPRESSION_TYPE_POWER:
-                    *((int*)result->value) = pow(x, y);
+                    result->type = AST_NODE_TYPE_NUMBER;
+                    result->value.number = pow(first->value.number, second->value.number);
                     break;
                 case AST_BINOMIAL_EXPRESSION_TYPE_EQUAL:
-                    *((int*)result->value) = x == y;
+                    result->type = AST_NODE_TYPE_BOOLEAN;
+                    result->value.boolean = first->value.number == second->value.number;
                     break;
                 case AST_BINOMIAL_EXPRESSION_TYPE_NOT_EQUAL:
-                    *((int*)result->value) = x != y;
+                    result->type = AST_NODE_TYPE_BOOLEAN;
+                    result->value.boolean = first->value.number != second->value.number;
                     break;
                 case AST_BINOMIAL_EXPRESSION_TYPE_GREATER:
-                    *((int*)result->value) = x > y;
+                    result->type = AST_NODE_TYPE_BOOLEAN;
+                    result->value.boolean = first->value.number > second->value.number;
                     break;
                 case AST_BINOMIAL_EXPRESSION_TYPE_GREATER_OR_EQUAL:
-                    *((int*)result->value) = x >= y;
+                    result->type = AST_NODE_TYPE_BOOLEAN;
+                    result->value.boolean = first->value.number >= second->value.number;
                     break;
                 case AST_BINOMIAL_EXPRESSION_TYPE_LESS:
-                    *((int*)result->value) = x > y;
+                    result->type = AST_NODE_TYPE_BOOLEAN;
+                    result->value.boolean = first->value.number < second->value.number;
                     break;
                 case AST_BINOMIAL_EXPRESSION_TYPE_LESS_OR_EQUAL:
-                    *((int*)result->value) = x >= y;
+                    result->type = AST_NODE_TYPE_BOOLEAN;
+                    result->value.boolean = first->value.number <= second->value.number;
                     break;
                 default:
                     fprintf(
@@ -234,16 +219,15 @@ static Declaration* runBinomialExpression(BinomialExpressionValue* expression, R
             }
             break;
         }
-        case AST_NODE_TYPE_BOOLEAN: {
-            int x = *((int*)first->value);
-            int y = *((int*)second->value);
-            
+        case AST_NODE_TYPE_BOOLEAN: {            
             switch(expression->type) {
                 case AST_BINOMIAL_EXPRESSION_TYPE_OR:
-                    *((int*)result->value) = x || y;
+                    result->type = AST_NODE_TYPE_BOOLEAN;
+                    result->value.boolean = first->value.number || second->value.number;
                     break;
                 case AST_BINOMIAL_EXPRESSION_TYPE_AND:
-                    *((int*)result->value) = x && y;
+                    result->type = AST_NODE_TYPE_BOOLEAN;
+                    result->value.boolean = first->value.number && second->value.number;
                     break;
                 default:
                     fprintf(
@@ -264,8 +248,8 @@ static Declaration* runBinomialExpression(BinomialExpressionValue* expression, R
             exit(1);
     }
 
-    RuntimeUtils.freeDeclaration(first);
-    RuntimeUtils.freeDeclaration(second);
+    free(first);
+    free(second);
 
     return result;
 }
@@ -302,8 +286,6 @@ static void runVariableAssignment(VariableAssignmentValue* assignment, RuntimeCo
         exit(1);
     }
 
-    RuntimeUtils.freeDeclarationValue(declaration);
-
     declaration->value = nextDeclaration->value;
 
     free(nextDeclaration);
@@ -326,7 +308,7 @@ static void runIfStatement(List* conditions, RuntimeContext* ctx) {
                 );
                 exit(1);
             }
-            if(*((int*)conditionResult->value) == 1) {
+            if(conditionResult->value.boolean) {
                 statements = conditionValue->statements;
                 break;
             }
