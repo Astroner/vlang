@@ -154,6 +154,27 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInGlobalS
                 }
                 break;
             }
+            case TOKEN_PURE_KEYWORD: {
+                if(guess == GUESS_TYPE_BLANK && isInGlobalScope) {
+                    Parsers.parseFunctionDefinition(
+                        nodeStart,
+                        contentLength - length,
+                        &parserResult
+                    );
+                    LinkedList.pushItem(
+                        nodes, 
+                        parserResult.node
+                    );
+                    current = parserResult.lastNode;
+                    nodeStart = current->next;
+                    guess = GUESS_TYPE_BLANK;
+                    length += parserResult.length - 1;
+                } else {
+                    fprintf(stderr, "[ERROR][AST][73675fc4e4a2] Unexpected 'pure' keyword\n");
+                    exit(1);
+                }
+                break;
+            }
             default: {
                 fprintf(stderr, "[ERROR][AST][d8ad5bfe5439] Unexpected token '%s'\n", t2s(token));
                 exit(1);

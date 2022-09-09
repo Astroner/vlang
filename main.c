@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
 
                 fseek(fp, 1, SEEK_CUR);
 
-                Token* result = TokenModule.parseToken(textChunk, prevToken);
+                Token* result = TokenModule.parseToken(textChunk, prevToken, FALSE);
 
                 if(result != NULL) {
                     LinkedList.pushItem(tokens, result);
@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
                 splitter[0] = ch;
                 splitter[1] = '\0';
 
-                Token* result = TokenModule.parseToken(splitter, prevToken);
+                Token* result = TokenModule.parseToken(splitter, prevToken, TRUE);
 
                 if(result != NULL) {
                     LinkedList.pushItem(tokens, result);

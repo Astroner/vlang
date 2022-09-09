@@ -1,7 +1,8 @@
-#include "../linkedList/linkedList.h"
-
 #if !defined(AST_H)
 #define AST_H
+
+#include "../linkedList/linkedList.h"
+#include "../main.h"
 
 typedef int AST_KIND;
 #define AST_KIND_BLANK 0
@@ -87,6 +88,8 @@ typedef struct {
 } FunctionArgumentValue;
 
 typedef struct {
+    BOOL pure;
+    BOOL memoized;
     ASTNode* name;
     AST_NODE_TYPE returnType;
     unsigned int argumentsCount;

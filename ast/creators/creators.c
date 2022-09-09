@@ -83,7 +83,14 @@ static ASTNode* createFunctionCall(ASTNode* name, int argumentsCount, List* argu
     return node;
 }
 
-static ASTNode* createFunctionDefinition(ASTNode* name, AST_NODE_TYPE returnType, unsigned int argumentsCount, List* arguments, List* statements) {
+static ASTNode* createFunctionDefinition(
+    BOOL pure, BOOL memoized, 
+    ASTNode* name, 
+    AST_NODE_TYPE returnType, 
+    unsigned int argumentsCount, 
+    List* arguments, 
+    List* statements
+) {
     ASTNode* node = malloc(sizeof(ASTNode));
     node->kind = AST_KIND_FUNCTION_DEFINITION;
 
@@ -93,6 +100,8 @@ static ASTNode* createFunctionDefinition(ASTNode* name, AST_NODE_TYPE returnType
     declaration->statements = statements;
     declaration->argumentsCount = argumentsCount;
     declaration->arguments = arguments;
+    declaration->pure = pure;
+    declaration->memoized = memoized;
 
     node->value = declaration;
 

@@ -37,6 +37,8 @@ static char* TokenType[] = {
     "TOKEN_GREATER_OR_EQUAL",
     "TOKEN_LESS_OR_EQUAL",
     "TOKEN_DOUBLE_EQUAL",
+    "TOKEN_PURE_KEYWORD",
+    "TOKEN_MEMOIZED_KEYWORD",
 };
 
 static Token* createToken(TOKEN_TYPE type, void* value) {
@@ -50,10 +52,12 @@ static Token* createToken(TOKEN_TYPE type, void* value) {
     return token;
 }
 
-Token* parseToken(char* str, Token* prevToken) {
+Token* parseToken(char* str, Token* prevToken, BOOL saveStringInitVal) {
 
     Token *token = NULL;
     int length = strlen(str);
+    BOOL saveString = saveStringInitVal;
+
     if(length == 1) {
         char ch = str[0];
 
@@ -172,6 +176,12 @@ Token* parseToken(char* str, Token* prevToken) {
         } 
         else if(strcmp(str, ELSE_KEYWORD) == 0) {
             token = createToken(TOKEN_ELSE_KEYWORD, NULL);
+        }
+        else if(strcmp(str, PURE_KEYWORD) == 0) {
+            token = createToken(TOKEN_PURE_KEYWORD, NULL);
+        }
+        else if(strcmp(str, MEMOIZED_KEYWORD) == 0) {
+            token = createToken(TOKEN_MEMOIZED_KEYWORD, NULL);
         } 
         else if(tryInt) {
             int* entity = malloc(sizeof(int));
@@ -180,7 +190,12 @@ Token* parseToken(char* str, Token* prevToken) {
         } 
         else {
             token = createToken(TOKEN_IDENTIFIER, str);
+            saveString = TRUE;
         }
+    }
+
+    if(!saveString) {
+        free(str);
     }
 
     return token;

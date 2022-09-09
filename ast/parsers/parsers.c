@@ -173,11 +173,36 @@ static ASTNode* parseFunctionArgument(List* tokens, unsigned int argumentLength)
 }
 
 static void parseFunctionDefinition(List* tokens, int listLimit, ParserResult* result) {
+    BOOL pure = FALSE;
+    BOOL memoized = FALSE;
     ASTNode* name;
     List* arguments = LinkedList.createList();
     AST_NODE_TYPE returnType = AST_NODE_TYPE_BLANK; 
 
-    Token* typeToken = tokens->value;
+    ListNode* typeNode = tokens;
+
+    if(((Token*)typeNode->value)->type == TOKEN_PURE_KEYWORD) {
+        pure = TRUE;
+        if(typeNode->next == NULL) {
+            fprintf(stderr, "[ERROR][AST][858cc4f3c27a] Unexpected function definition after 'pure' keyword \n");
+            exit(1);
+        }
+        typeNode = typeNode->next;
+    }
+    if(((Token*)typeNode->value)->type == TOKEN_MEMOIZED_KEYWORD) {
+        if(pure == FALSE) {
+            fprintf(stderr, "[ERROR][AST][858cc4f3c29d] You cannot memoize impure function\n");
+            exit(1);
+        }
+        memoized = TRUE;
+        if(typeNode->next == NULL) {
+            fprintf(stderr, "[ERROR][AST][858cc8s3c27a] Unexpected function definition after 'memoized' keyword \n");
+            exit(1);
+        }
+        typeNode = typeNode->next;
+    }
+
+    Token* typeToken = typeNode->value;
 
     if(typeToken->type == TOKEN_NUMBER_KEYWORD) {
         returnType = AST_NODE_TYPE_NUMBER;
@@ -188,7 +213,7 @@ static void parseFunctionDefinition(List* tokens, int listLimit, ParserResult* r
         exit(1);
     }
 
-    ListNode* nameNode = tokens->next;
+    ListNode* nameNode = typeNode->next;
     if(nameNode == NULL) {
         fprintf(stderr, "[ERROR][AST][313a20c4b58b] Expected function name\n");
         exit(1);
@@ -270,8 +295,15 @@ static void parseFunctionDefinition(List* tokens, int listLimit, ParserResult* r
     List* statements = parseStatements(bodyOpenNode->next, bracketRange.length - 2, FALSE);
 
     result->lastNode = bracketRange.closeBracket;
-    result->length = 3 + argumentsTokenLength + bracketRange.length;
+    result->length = 
+        3 
+        + argumentsTokenLength 
+        + bracketRange.length 
+        + pure ? 1 : 0
+        + memoized ? 1 : 0;
     result->node = Creators.createFunctionDefinition(
+        pure,
+        memoized,
         name, 
         returnType, 
         argumentsCount,

@@ -82,6 +82,13 @@ void logASTNode(ASTNode* node, int padding) {
         FunctionDefinitionValue* declaration = node->value;
 
         logPadding(padding + 1);
+        printf("Pure: %d\n", declaration->pure);
+        if(declaration->pure) {
+            logPadding(padding + 1);
+            printf("Memoized: %d\n", declaration->memoized);
+        }
+
+        logPadding(padding + 1);
         printf("Return Type: %s\n", AST.NodeType[declaration->returnType]);
 
         logPadding(padding + 1);
