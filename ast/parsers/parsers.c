@@ -150,6 +150,8 @@ static ASTNode* parseFunctionArgument(List* tokens, unsigned int argumentLength)
 
     if(typeToken->type == TOKEN_NUMBER_KEYWORD) {
         type = AST_NODE_TYPE_NUMBER;
+    } else if(typeToken->type == TOKEN_BOOLEAN_KEYWORD) {
+        type = AST_NODE_TYPE_BOOLEAN;
     } else {
         fprintf(stderr, "[ERROR][AST][2847cafd97b1] Unexpected token as type '%s'\n", t2s(typeToken));
         exit(1);

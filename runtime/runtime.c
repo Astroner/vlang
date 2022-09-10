@@ -12,6 +12,7 @@ static void run(List* statements) {
         Scopes.createScope(NULL),
         HashTable.create(),
         NULL,
+        HashTable.create(),
     };
 
     ListNode* current = statements;

@@ -148,6 +148,7 @@ Token* parseToken(char* str, Token* prevToken, BOOL saveStringInitVal) {
                 break;
             default:
                 token = createToken(TOKEN_IDENTIFIER, str);
+                saveString = TRUE;
                 break;
         }
     } else {

@@ -58,16 +58,18 @@ static Declaration* runFunctionCall(FunctionCallValue* call, RuntimeContext* ctx
         exit(1);
     }
     
-    Scope* functionScope = Scopes.createScope(ctx->scope->global);
-    Scopes.addTable(functionScope, HashTable.create());
+    Table* declarationsTable = HashTable.create();
 
-    RuntimeContext functionContext = {
-        functionScope,
-        ctx->functions,
-        NULL
-    };
+    char* argumentsBytes = NULL;
 
+    int counter = 0;
     if(definition->argumentsCount > 0) {
+
+        if(definition->memoized) {
+            argumentsBytes = malloc(sizeof(DeclarationValue) * definition->argumentsCount + 1);
+            argumentsBytes[sizeof(DeclarationValue) * definition->argumentsCount] = '\0';
+        }
+
         ListNode* currentArgument = definition->arguments;
         ListNode* currentExpression = call->arguments;
         while(1) {
@@ -88,7 +90,14 @@ static Declaration* runFunctionCall(FunctionCallValue* call, RuntimeContext* ctx
                 exit(1);
             }
 
-            Scopes.setItem(functionScope, argumentDeclaration->name->value, declaration);
+            if(definition->memoized) {
+                for(int i = sizeof(DeclarationValue) * counter; i < sizeof(DeclarationValue) * (counter + 1); i++) {
+                    argumentsBytes[i] = ((char*)(&declaration->value))[i] + 1;
+                }
+                counter++;
+            }
+
+            HashTable.set(declarationsTable, argumentDeclaration->name->value, declaration);
 
             currentExpression = currentExpression->next;
             if(!(currentArgument = currentArgument->next)) {
@@ -96,6 +105,30 @@ static Declaration* runFunctionCall(FunctionCallValue* call, RuntimeContext* ctx
             }
         }
     }
+
+    Table* memoizationTable;
+    if(argumentsBytes != NULL) {
+        memoizationTable = HashTable.get(ctx->memoization, call->name->value);
+        if(memoizationTable == NULL) {
+            memoizationTable = HashTable.create();
+            HashTable.set(ctx->memoization, call->name->value, memoizationTable);
+        }
+        Declaration* memoizedResult = HashTable.get(memoizationTable, argumentsBytes);
+        if(memoizedResult != NULL) {
+            RuntimeUtils.freeDeclarationsTable(declarationsTable);
+            return RuntimeUtils.deepCopyDeclaration(memoizedResult);
+        }
+    }
+
+    Scope* functionScope = Scopes.createScope(ctx->scope->global);
+    Scopes.addTable(functionScope, declarationsTable);
+
+    RuntimeContext functionContext = {
+        functionScope,
+        ctx->functions,
+        NULL,
+        ctx->memoization
+    };
 
     ListNode* current = definition->statements;
     while(1) {
@@ -121,6 +154,14 @@ static Declaration* runFunctionCall(FunctionCallValue* call, RuntimeContext* ctx
 
     free(functionScope->tables);
     free(functionScope);
+
+    if(argumentsBytes != NULL) {
+        HashTable.set(
+            memoizationTable, 
+            argumentsBytes, 
+            RuntimeUtils.deepCopyDeclaration(functionContext.returnValue)
+        );
+    }
 
     return functionContext.returnValue;
 }

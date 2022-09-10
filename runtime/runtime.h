@@ -29,6 +29,7 @@ typedef struct {
     Scope* scope;
     Table* functions;
     Declaration* returnValue;
+    Table* memoization; // Table<Table>
 } RuntimeContext;
 
 typedef struct {
