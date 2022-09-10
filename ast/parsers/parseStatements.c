@@ -36,7 +36,7 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInGlobalS
     while(1) {
         length++;
         Token* token = current->value;
-        // printf("T: %s, L: %d, LIM: %d\n", t2s(token), length, contentLength);
+        // printf("Token: %s, Length: %d, LIM: %d\n", t2s(token), length, contentLength);
         switch(token->type) {
             case TOKEN_BOOLEAN_KEYWORD:
             case TOKEN_NUMBER_KEYWORD: {
@@ -51,7 +51,7 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInGlobalS
             case TOKEN_IDENTIFIER: {
                 if(guess == GUESS_TYPE_BLANK) {
                     guess = GUESS_TYPE_FUNCTION_CALL | GUESS_TYPE_VARIABLE_ASSIGNMENT;
-                } else if(!guessIncludes(guess, GUESS_TYPE_FUNCTION_DEFINITION | GUESS_TYPE_VARIABLE_DEFINITION)) {
+                } else if(!guessIncludes(guess, GUESS_TYPE_FUNCTION_DEFINITION) && !guessIncludes(guess, GUESS_TYPE_VARIABLE_DEFINITION)) {
                     fprintf(stderr, "[ERROR][AST][531840349f39] Unexpected identifier '%s'\n", token->value);
                     exit(1);
                 }
@@ -120,7 +120,7 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInGlobalS
                     );
                     current = parserResult.lastNode;
                     nodeStart = current->next;
-                    length += parserResult.length - 3;
+                    length += parserResult.length - 2;
                     guess = GUESS_TYPE_BLANK;
                 } else {
                     fprintf(stderr, "[ERROR][AST][c9528490b4c6] Unexpected token '('\n");
@@ -168,6 +168,26 @@ List* parseStatements(List* tokens, unsigned int contentLength, BOOL isInGlobalS
                     current = parserResult.lastNode;
                     nodeStart = current->next;
                     guess = GUESS_TYPE_BLANK;
+                    length += parserResult.length - 1;
+                } else {
+                    fprintf(stderr, "[ERROR][AST][73675fc4e4a2] Unexpected 'pure' keyword\n");
+                    exit(1);
+                }
+                break;
+            }
+            case TOKEN_VOID_KEYWORD: {
+                if(guess == GUESS_TYPE_BLANK && isInGlobalScope) {
+                    Parsers.parseFunctionDefinition(
+                        nodeStart,
+                        contentLength - length,
+                        &parserResult
+                    );
+                    LinkedList.pushItem(
+                        nodes, 
+                        parserResult.node
+                    );
+                    current = parserResult.lastNode;
+                    nodeStart = current->next;
                     length += parserResult.length - 1;
                 } else {
                     fprintf(stderr, "[ERROR][AST][73675fc4e4a2] Unexpected 'pure' keyword\n");

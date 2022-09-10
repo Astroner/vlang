@@ -210,6 +210,8 @@ static void parseFunctionDefinition(List* tokens, int listLimit, ParserResult* r
         returnType = AST_NODE_TYPE_NUMBER;
     } else if(typeToken->type == TOKEN_BOOLEAN_KEYWORD) {
         returnType = AST_NODE_TYPE_BOOLEAN;
+    } else if(typeToken->type == TOKEN_VOID_KEYWORD) {
+        returnType = AST_NODE_TYPE_BLANK;
     } else {
         fprintf(stderr, "[ERROR][AST][858cc4f36b7a] Unexpected token as return type '%s'\n", t2s(typeToken));
         exit(1);

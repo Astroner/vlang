@@ -39,6 +39,7 @@ static char* TokenType[] = {
     "TOKEN_DOUBLE_EQUAL",
     "TOKEN_PURE_KEYWORD",
     "TOKEN_MEMOIZED_KEYWORD",
+    "TOKEN_VOID_KEYWORD",
 };
 
 static Token* createToken(TOKEN_TYPE type, void* value) {
@@ -184,6 +185,9 @@ Token* parseToken(char* str, Token* prevToken, BOOL saveStringInitVal) {
         else if(strcmp(str, MEMOIZED_KEYWORD) == 0) {
             token = createToken(TOKEN_MEMOIZED_KEYWORD, NULL);
         } 
+        else if(strcmp(str, VOID_KEYWORD) == 0) {
+            token = createToken(TOKEN_VOID_KEYWORD, NULL);
+        }
         else if(tryInt) {
             int* entity = malloc(sizeof(int));
             *entity = tryInt;

@@ -140,7 +140,7 @@ static Declaration* runFunctionCall(FunctionCallValue* call, RuntimeContext* ctx
         }
     }
 
-    if(functionContext.returnValue == NULL) {
+    if(functionContext.returnValue == NULL && definition->returnType != AST_NODE_TYPE_BLANK) {
         fprintf(stderr, "[ERROR][RUNTIME][71v21kgh21deb] Function '%s' should return something\n", call->name->value);
         exit(1);
     }

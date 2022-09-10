@@ -39,6 +39,7 @@
 #define TOKEN_DOUBLE_EQUAL 30
 #define TOKEN_PURE_KEYWORD 31
 #define TOKEN_MEMOIZED_KEYWORD 32
+#define TOKEN_VOID_KEYWORD 33
 
 #define NUMBER_KEYWORD "number"
 #define RETURN_KEYWORD "return"
@@ -49,6 +50,7 @@
 #define ELSE_KEYWORD "else"
 #define PURE_KEYWORD "pure"
 #define MEMOIZED_KEYWORD "memoized"
+#define VOID_KEYWORD "void"
 
 // returns stringified token type from dict
 #define t2s(token) TokenModule.TokenType[token->type]
